@@ -18,6 +18,7 @@ class E160_robot:
         self.radius = 0.147 / 2
         self.width = 2*self.radius
         self.wheel_radius = 0.034
+        self.botDiameter = 0.15
         self.address = address
         self.ID = self.address.encode().__str__()[-1]
         self.last_measurements = []
@@ -178,8 +179,12 @@ class E160_robot:
         wheelDistanceR = (float(diffEncoder1) / float(self.encoder_resolution)) * 2*math.pi*self.wheel_radius 
         wheelDistanceL = (float(diffEncoder0) / float(self.encoder_resolution)) * 2*math.pi*self.wheel_radius
        
-#        print "left: " wheelDistanceL "  right:" wheelDistanceR
-#        print "Left {0} and Right {1} ".format(wheelDistanceL,wheelDistanceR)
+        #print "left: " + wheelDistanceL + "  right:" + wheelDistanceR
+        #print "Left {0} and Right {1} ".format(wheelDistanceL,wheelDistanceR)
+
+        #calculate delta_s and delta_theta
+        delta_s = ( wheelDistanceL + wheelDistanceR )/ 2
+        delta_theta = ( wheelDistanceR - wheelDistanceL ) / self.botDiameter 
 
         # ****************** Additional Student Code: End ************
             
@@ -192,7 +197,15 @@ class E160_robot:
     def update_state(self, state, delta_s, delta_theta):
         
         # ****************** Additional Student Code: Start ************
-                     
+        delta_x = delta_s*math.cos(state.theta + (delta_theta/2) ) 
+        delta_y = delta_s*math.sin(state.theta + (delta_theta/2) )
+        
+        state.x += delta_x  
+        state.y += delta_y
+        state.theta += delta_theta
+        state.theta = math.degrees(state.theta)
+
+        print "X {0} and Y {1} Theta {2}".format(state.x,state.y,state.theta)
         
         # ****************** Additional Student Code: End ************
             
