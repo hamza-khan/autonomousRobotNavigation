@@ -25,7 +25,15 @@ class E160_robot:
         self.robot_id = robot_id
         self.manual_control_left_motor = 0
         self.manual_control_right_motor = 0
-        self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
+        #calibration parameters for different tests - forward, backward, rotationCW and rotationCCW
+        self.calibrationTest = 'forward'
+        self.calibrationRotationNumber = 1
+        self.calibrationCycleCount = 0
+        self.calibrationDistance = 1.0
+        self.calibrationSpeed = 20.0
+        #self.firstTime = 0
+        #self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
+        self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + str(self.calibrationTest) + '_speed' + str(self.calibrationSpeed) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
         self.make_headers()
         self.encoder_resolution = 1440
         
@@ -92,11 +100,52 @@ class E160_robot:
         
             
         elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":        
-            range_des = 500
-            range_diff = 500 - range_measurements[2]
-            K_p = 0.5
-            R = range_diff * K_p
-            L = range_diff * K_p
+
+        	#Code for Calibration curves as a function of time
+        	# if self.firstTime == 0:
+		       #  self.state_est.set_state(0,0,0)
+		       #  self.firstTime +=1
+        	#Rotation
+        	#for clockwise - cw = 1 & ccw = -1 and for counter clockwise cw = -1 and ccw = 1
+            if self.calibrationTest == 'rotationCW':        		
+                rDirection = -1
+                lDirection = 1 
+            elif self.calibrationTest == 'rotationCCW':        		
+                rDirection = -1
+                lDirection = 1 
+            elif self.calibrationTest == 'forward':
+                rDirection = 1
+                lDirection = 1
+            elif self.calibrationTest == 'backward':
+                rDirection = -1
+                lDirection = -1
+            else :
+                rDirection = 0
+                lDirection = 0 
+		
+    #rotation  		
+	  #       if abs(self.state_est.theta) > (2*math.pi*self.calibrationRotationNumber):
+	  # #      	print "Number of rotations left {0} and theta {1}".format(self.calibrationCycleCount, self.state_est.theta)
+	  #       	self.calibrationCycleCount = self.calibrationRotationNumber
+   #      		speed = 0 
+   #      	else :
+   #      		speed = self.calibrationSpeed
+
+            if abs(self.state_est.x) < self.calibrationDistance:
+                speed = self.calibrationSpeed
+            else:
+                speed = 0
+
+            R = int(rDirection*speed*256/100)
+            L = int(lDirection*speed*256/100)
+
+    
+        	# # code for stopping 30cm before the wall
+         #    range_des = 500 # IR sensor value corresponding to 30cm
+         #    range_diff = 500 - range_measurements[2]
+         #    K_p = 0.5
+         #    R = range_diff * K_p
+         #    L = range_diff * K_p
 
         return R, L
             
@@ -170,7 +219,7 @@ class E160_robot:
         if diffEncoder1>1000:
             diffEncoder1 = 0
         # reset last encoder
-        print "Prev_state {0}, Current_State {1} and difference {2}, {3}".format(self.last_encoder_measurements,self.encoder_measurements,diffEncoder0,diffEncoder1)
+    #    print "Prev_state {0}, Current_State {1} and difference {2}, {3}".format(self.last_encoder_measurements,self.encoder_measurements,diffEncoder0,diffEncoder1)
 
  
         self.last_encoder_measurements = self.encoder_measurements
@@ -203,9 +252,12 @@ class E160_robot:
         state.x += delta_x  
         state.y += delta_y
         state.theta += delta_theta
-        state.theta = math.degrees(state.theta)
+        # if state.theta > math.pi:
+        #     state.theta = state.theta - 2*math.pi
+        # if state.theta < -math.pi:
+        #     state.theta = state.theta + 2*math.pi
 
-        print "X {0} and Y {1} Theta {2}".format(state.x,state.y,state.theta)
+        #print "X {0} and Y {1} Theta {2}".format(state.x,state.y,state.theta)
         
         # ****************** Additional Student Code: End ************
             

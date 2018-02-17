@@ -18,7 +18,7 @@ class E160_graphics:
         self.bottom_frame = Frame(self.tk)
         self.bottom_frame.pack(side = BOTTOM)
         
-        self.scale = 500
+        self.scale = 300
         self.canvas = Canvas(self.tk, width=self.environment.width*self.scale, height=self.scale* self.environment.height)
         self.tk.title("E160 - Autonomous Robot Navigation")
         self.canvas.bind("<Button-1>", self.callback)
