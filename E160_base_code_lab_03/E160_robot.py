@@ -17,7 +17,8 @@ class E160_robot:
         self.L = 0
         self.radius = 0.147 / 2
         self.width = 2*self.radius
-        self.wheel_radius = 0.03
+        self.wheel_radius = 0.034
+        self.botDiameter = 0.15
         self.address = address
         self.ID = self.address.encode().__str__()[-1]
         self.last_measurements = []
@@ -113,6 +114,7 @@ class E160_robot:
 
         # If the desired point is not tracked yet, then track it
         if not self.point_tracked:
+            print "hi"
 
             
             ############ Student code goes here ############################################
@@ -182,15 +184,37 @@ class E160_robot:
    
 
 
+
     def update_odometry(self, encoder_measurements):
 
         delta_s = 0
         delta_theta = 0
 
         # ****************** Additional Student Code: Start ************
+        # define differential encoder measurements
+        diffEncoder0 = -1*(self.encoder_measurements[0]-self.last_encoder_measurements[0])
+        diffEncoder1 = -1*(self.encoder_measurements[1]-self.last_encoder_measurements[1])
+        if diffEncoder0>1000:
+            diffEncoder0 = 0
+        if diffEncoder1>1000:
+            diffEncoder1 = 0
+        # reset last encoder
+    #    print "Prev_state {0}, Current_State {1} and difference {2}, {3}".format(self.last_encoder_measurements,self.encoder_measurements,diffEncoder0,diffEncoder1)
 
-        
-        
+ 
+        self.last_encoder_measurements = self.encoder_measurements
+  
+        #calculate distance traveled
+        wheelDistanceR = (float(diffEncoder1) / float(self.encoder_resolution)) * 2*math.pi*self.wheel_radius 
+        wheelDistanceL = (float(diffEncoder0) / float(self.encoder_resolution)) * 2*math.pi*self.wheel_radius
+       
+        #print "left: " + wheelDistanceL + "  right:" + wheelDistanceR
+        #print "Left {0} and Right {1} ".format(wheelDistanceL,wheelDistanceR)
+
+        #calculate delta_s and delta_theta
+        delta_s = ( wheelDistanceL + wheelDistanceR )/ 2
+        delta_theta = ( wheelDistanceR - wheelDistanceL ) / self.botDiameter 
+
         # ****************** Additional Student Code: End ************
             
         # keep this to return appropriate changes in distance, angle
@@ -202,11 +226,19 @@ class E160_robot:
     def update_state(self, state, delta_s, delta_theta):
         
         # ****************** Additional Student Code: Start ************
-                     
+        delta_x = delta_s*math.cos(state.theta + (delta_theta/2) ) 
+        delta_y = delta_s*math.sin(state.theta + (delta_theta/2) )
         
+        state.x += delta_x  
+        state.y += delta_y
+        state.theta += delta_theta
+        # if state.theta > math.pi:
+        #     state.theta = state.theta - 2*math.pi
+        # if state.theta < -math.pi:
+        #     state.theta = state.theta + 2*math.pi
+
+        #print "X {0} and Y {1} Theta {2}".format(state.x,state.y,state.theta)
         
-        
-         
         # ****************** Additional Student Code: End ************
             
         # keep this to return the updated state
