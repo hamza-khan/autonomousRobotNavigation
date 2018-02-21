@@ -25,15 +25,7 @@ class E160_robot:
         self.robot_id = robot_id
         self.manual_control_left_motor = 0
         self.manual_control_right_motor = 0
-        #calibration parameters for different tests - forward, backward, rotationCW and rotationCCW
-        self.calibrationTest = 'forward'
-        self.calibrationRotationNumber = 1
-        self.calibrationCycleCount = 0
-        self.calibrationDistance = 1.0
-        self.calibrationSpeed = 20.0
-        #self.firstTime = 0
         self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
-        #self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + str(self.calibrationTest) + '_speed' + str(self.calibrationSpeed) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
         self.make_headers()
         self.encoder_resolution = 1440
         
@@ -43,7 +35,12 @@ class E160_robot:
         self.last_simulated_encoder_R = 0
         self.last_simulated_encoder_L = 0
         
-
+        self.Kpho = 1#1.0
+        self.Kalpha = 2#2.0
+        self.Kbeta = -0.5#-0.5
+        self.max_velocity = 0.05
+        self.point_tracked = True
+        self.encoder_per_sec_to_rad_per_sec = 10
         
         
     def update(self, deltaT):
@@ -91,65 +88,47 @@ class E160_robot:
     
         return state_est
     
-    
+    def angle_wrap(self, a):
+        while a > math.pi:
+            a = a - 2*math.pi
+        while a < -math.pi:
+            a = a + 2*math.pi
+            
+        return a
+        
+        
     def update_control(self, range_measurements):
         
         if self.environment.control_mode == "MANUAL CONTROL MODE":
-            R = self.manual_control_right_motor
-            L = self.manual_control_left_motor
-        
+            desiredWheelSpeedR = self.manual_control_right_motor
+            desiredWheelSpeedL = self.manual_control_left_motor
             
-        elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":        
-            R = 0
-            L = 0
-        	#Code for Calibration curves as a function of time
-        	# if self.firstTime == 0:
-		       #  self.state_est.set_state(0,0,0)
-		       #  self.firstTime +=1
-        	#Rotation
-        	#for clockwise - cw = 1 & ccw = -1 and for counter clockwise cw = -1 and ccw = 1
-            # if self.calibrationTest == 'rotationCW':        		
-            #     rDirection = -1
-            #     lDirection = 1 
-            # elif self.calibrationTest == 'rotationCCW':        		
-            #     rDirection = -1
-            #     lDirection = 1 
-            # elif self.calibrationTest == 'forward':
-            #     rDirection = 1
-            #     lDirection = 1
-            # elif self.calibrationTest == 'backward':
-            #     rDirection = -1
-            #     lDirection = -1
-            # else :
-            #     rDirection = 0
-            #     lDirection = 0 
-		
-    #rotation  		
-	  #       if abs(self.state_est.theta) > (2*math.pi*self.calibrationRotationNumber):
-	  # #      	print "Number of rotations left {0} and theta {1}".format(self.calibrationCycleCount, self.state_est.theta)
-	  #       	self.calibrationCycleCount = self.calibrationRotationNumber
-   #      		speed = 0 
-   #      	else :
-   #      		speed = self.calibrationSpeed
-    #Translation
-            # if abs(self.state_est.x) < self.calibrationDistance:
-            #     speed = self.calibrationSpeed
-            # else:
-            #     speed = 0
+        elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":   
+            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+            
+        return desiredWheelSpeedR, desiredWheelSpeedL
+  
 
-            # R = int(rDirection*speed*256/100)
-            # L = int(lDirection*speed*256/100)
+
+    def point_tracker_control(self):
+
+        # If the desired point is not tracked yet, then track it
+        if not self.point_tracked:
+            print "hi"
+
+            
+            ############ Student code goes here ############################################
+            
+            
+            
+        # the desired point has been tracked, so don't move
+        else:
+            desiredWheelSpeedR = 0
+            desiredWheelSpeedL = 0
+                
+        return desiredWheelSpeedR,desiredWheelSpeedL
 
     
-        	# # code for stopping 30cm before the wall
-         #    range_des = 500 # IR sensor value corresponding to 30cm
-         #    range_diff = 500 - range_measurements[2]
-         #    K_p = 0.5
-         #    R = range_diff * K_p
-         #    L = range_diff * K_p
-
-        return R, L
-            
     def send_control(self, R, L, deltaT):
         
         # send to actual robot !!!!!!!!
@@ -172,13 +151,12 @@ class E160_robot:
     
     
     def simulate_encoders(self, R, L, deltaT):
-        gain = 10
-        right_encoder_measurement = -int(R*gain*deltaT) + self.last_simulated_encoder_R
-        left_encoder_measurement = -int(L*gain*deltaT) + self.last_simulated_encoder_L
+        right_encoder_measurement = -int(R*self.encoder_per_sec_to_rad_per_sec*deltaT) + self.last_simulated_encoder_R
+        left_encoder_measurement = -int(L*self.encoder_per_sec_to_rad_per_sec*deltaT) + self.last_simulated_encoder_L
         self.last_simulated_encoder_R = right_encoder_measurement
         self.last_simulated_encoder_L = left_encoder_measurement
         
-        print "simulate_encoders", R, L, right_encoder_measurement, left_encoder_measurement
+        #print "simulate_encoders", R, L, right_encoder_measurement, left_encoder_measurement
         return [left_encoder_measurement, right_encoder_measurement]
     
         
@@ -204,6 +182,7 @@ class E160_robot:
         self.manual_control_right_motor = int(R*256/100)
         self.manual_control_left_motor = int(L*256/100)                                                         
    
+
 
 
     def update_odometry(self, encoder_measurements):
