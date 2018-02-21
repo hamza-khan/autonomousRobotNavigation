@@ -32,8 +32,8 @@ class E160_robot:
         self.calibrationDistance = 1.0
         self.calibrationSpeed = 20.0
         #self.firstTime = 0
-        #self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
-        self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + str(self.calibrationTest) + '_speed' + str(self.calibrationSpeed) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
+        self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
+        #self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + str(self.calibrationTest) + '_speed' + str(self.calibrationSpeed) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
         self.make_headers()
         self.encoder_resolution = 1440
         
@@ -100,28 +100,29 @@ class E160_robot:
         
             
         elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":        
-
+            R = 0
+            L = 0
         	#Code for Calibration curves as a function of time
         	# if self.firstTime == 0:
 		       #  self.state_est.set_state(0,0,0)
 		       #  self.firstTime +=1
         	#Rotation
         	#for clockwise - cw = 1 & ccw = -1 and for counter clockwise cw = -1 and ccw = 1
-            if self.calibrationTest == 'rotationCW':        		
-                rDirection = -1
-                lDirection = 1 
-            elif self.calibrationTest == 'rotationCCW':        		
-                rDirection = -1
-                lDirection = 1 
-            elif self.calibrationTest == 'forward':
-                rDirection = 1
-                lDirection = 1
-            elif self.calibrationTest == 'backward':
-                rDirection = -1
-                lDirection = -1
-            else :
-                rDirection = 0
-                lDirection = 0 
+            # if self.calibrationTest == 'rotationCW':        		
+            #     rDirection = -1
+            #     lDirection = 1 
+            # elif self.calibrationTest == 'rotationCCW':        		
+            #     rDirection = -1
+            #     lDirection = 1 
+            # elif self.calibrationTest == 'forward':
+            #     rDirection = 1
+            #     lDirection = 1
+            # elif self.calibrationTest == 'backward':
+            #     rDirection = -1
+            #     lDirection = -1
+            # else :
+            #     rDirection = 0
+            #     lDirection = 0 
 		
     #rotation  		
 	  #       if abs(self.state_est.theta) > (2*math.pi*self.calibrationRotationNumber):
@@ -130,14 +131,14 @@ class E160_robot:
    #      		speed = 0 
    #      	else :
    #      		speed = self.calibrationSpeed
+    #Translation
+            # if abs(self.state_est.x) < self.calibrationDistance:
+            #     speed = self.calibrationSpeed
+            # else:
+            #     speed = 0
 
-            if abs(self.state_est.x) < self.calibrationDistance:
-                speed = self.calibrationSpeed
-            else:
-                speed = 0
-
-            R = int(rDirection*speed*256/100)
-            L = int(lDirection*speed*256/100)
+            # R = int(rDirection*speed*256/100)
+            # L = int(lDirection*speed*256/100)
 
     
         	# # code for stopping 30cm before the wall
