@@ -1,5 +1,5 @@
 import math
-from tkinter import *
+from Tkinter import *
 from E160_robot import *
 from PIL import Image, ImageTk
 
