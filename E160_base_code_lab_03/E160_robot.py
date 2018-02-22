@@ -232,10 +232,10 @@ class E160_robot:
         state.x += delta_x  
         state.y += delta_y
         state.theta += delta_theta
-        # if state.theta > math.pi:
-        #     state.theta = state.theta - 2*math.pi
-        # if state.theta < -math.pi:
-        #     state.theta = state.theta + 2*math.pi
+        if state.theta > math.pi:
+            state.theta = state.theta - 2*math.pi
+        if state.theta < -math.pi:
+            state.theta = state.theta + 2*math.pi
 
         #print "X {0} and Y {1} Theta {2}".format(state.x,state.y,state.theta)
         
