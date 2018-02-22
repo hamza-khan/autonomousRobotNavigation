@@ -35,7 +35,7 @@ class E160_robot:
         self.last_simulated_encoder_R = 0
         self.last_simulated_encoder_L = 0
         
-        self.Kpho = 1#1.0
+        self.Krho = 1#1.0
         self.Kalpha = 2#2.0
         self.Kbeta = -0.5#-0.5
         self.max_velocity = 0.05
