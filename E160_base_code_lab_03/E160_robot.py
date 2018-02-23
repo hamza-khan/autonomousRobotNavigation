@@ -35,7 +35,7 @@ class E160_robot:
         self.last_simulated_encoder_R = 0
         self.last_simulated_encoder_L = 0
         
-        self.Kpho = 1#1.0
+        self.Krho = 1#1.0
         self.Kalpha = 2#2.0
         self.Kbeta = -0.5#-0.5
         self.max_velocity = 0.05
@@ -114,13 +114,45 @@ class E160_robot:
 
         # If the desired point is not tracked yet, then track it
         if not self.point_tracked:
-            print "hi"
-
-            
             ############ Student code goes here ############################################
-            
-            
-            
+            #get delta values as desired state - current state estimate
+            delta_x = self.state_des.x - self.state_est.x
+            delta_y = self.state_des.y - self.state_est.y
+            delta_theta = self.state_des.theta - self.state_est.theta
+
+            #get the angle between the current state point and the desired state point to 
+            #determine which way the robot is facing
+            thetaEstimateToDesired = math.atan2(delta_y, delta_x) 
+
+            thetaEstimate = self.state_est.theta
+            thetaMax = self.angle_wrap(thetaEstimate + math.pi/2)  
+            thetaMin = self.angle_wrap(thetaEstimate - math.pi/2)
+            #print "thetaEstToDesired {0}, thetaEst {1}, thetaMax {2} and thetaMin {3}".format(thetaEstimateToDesired, thetaEstimate, thetaMax, thetaMin)
+           
+            #if facing forward
+            if thetaMax > thetaEstimateToDesired > thetaMin:
+                #constants for forward movement
+                rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
+                alpha = -self.state_est.theta + math.atan2(delta_y, delta_x)
+                beta = -self.state_est.theta - alpha
+                # use constants to get forward and rotational velocity
+                forwardVel = self.Krho*rho
+                rotationalVel = self.Kalpha*alpha + self.Kbeta*beta
+
+            else:
+                #constants for backwards movement
+                rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
+                alpha = -self.state_est.theta + math.atan2(-delta_y, -delta_x)
+                beta = -self.state_est.theta -alpha
+                # use constants to get forward and rotational velocity
+                forwardVel = -self.Krho*rho
+                rotationalVel = self.Kalpha*alpha + self.Kbeta*beta
+
+            #TODO : unclear about these next 2 lines, the rest should be fine but not sure so 
+            desiredWheelSpeedL = (rotationalVel*self.botDiameter + forwardVel)/self.wheel_radius
+            desiredWheelSpeedR = (rotationalVel*self.botDiameter - forwardVel)/self.wheel_radius
+
+
         # the desired point has been tracked, so don't move
         else:
             desiredWheelSpeedR = 0
@@ -232,10 +264,10 @@ class E160_robot:
         state.x += delta_x  
         state.y += delta_y
         state.theta += delta_theta
-        # if state.theta > math.pi:
-        #     state.theta = state.theta - 2*math.pi
-        # if state.theta < -math.pi:
-        #     state.theta = state.theta + 2*math.pi
+        if state.theta > math.pi:
+            state.theta = state.theta - 2*math.pi
+        if state.theta < -math.pi:
+            state.theta = state.theta + 2*math.pi
 
         #print "X {0} and Y {1} Theta {2}".format(state.x,state.y,state.theta)
         
