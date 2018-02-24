@@ -35,9 +35,9 @@ class E160_robot:
         self.last_simulated_encoder_R = 0
         self.last_simulated_encoder_L = 0
         
-        self.Krho = 1#1.0
-        self.Kalpha = 2#2.0
-        self.Kbeta = -0.5#-0.5
+        self.Krho = 1.0 #1.0
+        self.Kalpha = 2.0 #2.0
+        self.Kbeta = -0.5 #-0.5
         self.max_velocity = 0.05
         self.point_tracked = True
         self.encoder_per_sec_to_rad_per_sec = 10
@@ -115,45 +115,73 @@ class E160_robot:
         # If the desired point is not tracked yet, then track it
         if not self.point_tracked:
             ############ Student code goes here ############################################
+            #angle wrap desired theta
+            self.state_des.theta = self.angle_wrap(self.state_des.theta)
+
             #get delta values as desired state - current state estimate
             delta_x = self.state_des.x - self.state_est.x
             delta_y = self.state_des.y - self.state_est.y
             delta_theta = self.state_des.theta - self.state_est.theta
+            
+            #print "delta_y {0} ".format(delta_y) 
+            print "delta_theta {0} ".format(delta_theta)
 
             #get the angle between the current state point and the desired state point to 
             #determine which way the robot is facing
             thetaEstimateToDesired = math.atan2(delta_y, delta_x) 
-
             thetaEstimate = self.state_est.theta
-            thetaMax = self.angle_wrap(thetaEstimate + math.pi/2)  
-            thetaMin = self.angle_wrap(thetaEstimate - math.pi/2)
-            #print "thetaEstToDesired {0}, thetaEst {1}, thetaMax {2} and thetaMin {3}".format(thetaEstimateToDesired, thetaEstimate, thetaMax, thetaMin)
            
-            #if facing forward
-            if thetaMax > thetaEstimateToDesired > thetaMin:
+            #set alpha
+            alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
+            
+            #if in front of robot
+            if abs(alpha) < math.pi/2:
+                print "im going forward"
                 #constants for forward movement
                 rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
-                alpha = -self.state_est.theta + math.atan2(delta_y, delta_x)
-                beta = -self.state_est.theta - alpha
+                alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
+                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_des.theta)
                 # use constants to get forward and rotational velocity
-                forwardVel = self.Krho*rho
-                rotationalVel = self.Kalpha*alpha + self.Kbeta*beta
-
-            else:
+                desiredV = self.Krho*rho
+                desiredW = self.Kalpha*alpha + self.Kbeta*beta
+            
+            #if behind robot
+            if abs(alpha) >= math.pi/2:
+                print "im going backwards"
                 #constants for backwards movement
                 rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
-                alpha = -self.state_est.theta + math.atan2(-delta_y, -delta_x)
-                beta = -self.state_est.theta -alpha
+                alpha = self.angle_wrap(-thetaEstimate + math.atan2(-delta_y, -delta_x))
+                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_des.theta)
+               
                 # use constants to get forward and rotational velocity
-                forwardVel = -self.Krho*rho
-                rotationalVel = self.Kalpha*alpha + self.Kbeta*beta
+                desiredV = -self.Krho*rho
+                desiredW = self.Kalpha*alpha + self.Kbeta*beta       
 
-            #TODO : unclear about these next 2 lines, the rest should be fine but not sure so 
-            desiredWheelSpeedL = (rotationalVel*self.botDiameter + forwardVel)/self.wheel_radius
-            desiredWheelSpeedR = (rotationalVel*self.botDiameter - forwardVel)/self.wheel_radius
+            #set desired rotational rate and desired wheel speed 
+            L = self.botDiameter / 2
+            scaleFactor = 10
+            desiredRotRateR = (desiredW + ((desiredV)/L)) /2 
+            desiredRotRateL = (desiredW - ((desiredV)/L)) /2 
+            desiredWheelSpeedR = scaleFactor* (desiredRotRateR * 2 * L) / self.wheel_radius
+            desiredWheelSpeedL = scaleFactor* (-desiredRotRateL * 2 * L) / self.wheel_radius
+            print desiredWheelSpeedL
 
+            #Find m/s bot speed
+            botSpeed = (desiredWheelSpeedL + desiredWheelSpeedR)/2
+            botSpeedMS = ( botSpeed * (self.botDiameter/2) * self.encoder_per_sec_to_rad_per_sec ) /  self.encoder_resolution
+            print botSpeed
+            print botSpeedMS
+ 
+            #Check max speed
+            if (abs(botSpeedMS) > self.max_velocity):
+                #Find max velocity in rots 
+                maxBotSpeed = self.max_velocity * (2/self.botDiameter)
+                desiredWheelSpeedL = 2* maxBotSpeed * (desiredWheelSpeedL / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
+                desiredWheelSpeedR = 2* maxBotSpeed * (desiredWheelSpeedR / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
+                finalspeed = (desiredWheelSpeedL + desiredWheelSpeedR) /2
+                print finalspeed
 
-        # the desired point has been tracked, so don't move
+        #the desired point has been tracked, so don't move
         else:
             desiredWheelSpeedR = 0
             desiredWheelSpeedL = 0
@@ -252,8 +280,6 @@ class E160_robot:
         # keep this to return appropriate changes in distance, angle
         return delta_s, delta_theta 
 
-    
-    
     
     def update_state(self, state, delta_s, delta_theta):
         
