@@ -38,6 +38,8 @@ class E160_robot:
         self.Krho = 1.0 #1.0
         self.Kalpha = 2.0 #2.0
         self.Kbeta = -0.5 #-0.5
+        self.KalphaTheta = 2.0 #2.0
+        self.KbetaTheta = -0.5 #-0.5
         self.max_velocity = 0.05
         self.point_tracked = True
         self.encoder_per_sec_to_rad_per_sec = 10
@@ -122,9 +124,6 @@ class E160_robot:
             delta_x = self.state_des.x - self.state_est.x
             delta_y = self.state_des.y - self.state_est.y
             delta_theta = self.state_des.theta - self.state_est.theta
-            
-            #print "delta_y {0} ".format(delta_y) 
-            print "delta_theta {0} ".format(delta_theta)
 
             #get the angle between the current state point and the desired state point to 
             #determine which way the robot is facing
@@ -155,7 +154,21 @@ class E160_robot:
                
                 # use constants to get forward and rotational velocity
                 desiredV = -self.Krho*rho
-                desiredW = self.Kalpha*alpha + self.Kbeta*beta       
+                desiredW = self.Kalpha*alpha + self.Kbeta*beta   
+
+            #second controller
+            xThreshold = 0.05
+            yThreshold = 0.05
+            thetaThreshold = 0.05
+            if (abs(delta_x) < xThreshold) & (abs(delta_y) < yThreshold):
+                desiredV = 0
+                desiredW = self.KalphaTheta*alpha + self.KbetaTheta*beta  
+
+            #checks if AVA is close enough
+            if (abs(delta_x) < xThreshold) & (abs(delta_y) < yThreshold) & (abs(delta_theta) < thetaThreshold):
+                self.point_tracked = True
+
+            print "desired V {0}".format(desiredV)
 
             #set desired rotational rate and desired wheel speed 
             L = self.botDiameter / 2
@@ -164,31 +177,48 @@ class E160_robot:
             desiredRotRateL = (desiredW - ((desiredV)/L)) /2 
             desiredWheelSpeedR = scaleFactor* (desiredRotRateR * 2 * L) / self.wheel_radius
             desiredWheelSpeedL = scaleFactor* (-desiredRotRateL * 2 * L) / self.wheel_radius
-            print desiredWheelSpeedL
+            #print desiredWheelSpeedL
 
             #Find m/s bot speed
-            botSpeed = (desiredWheelSpeedL + desiredWheelSpeedR)/2
-            botSpeedMS = ( botSpeed * (self.botDiameter/2) * self.encoder_per_sec_to_rad_per_sec ) /  self.encoder_resolution
-            print botSpeed
-            print botSpeedMS
+            #botSpeed = (desiredWheelSpeedL + desiredWheelSpeedR)/2
+            
+            botSpeedMSRight = ( desiredWheelSpeedR * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
+            botSpeedMSLeft  = ( desiredWheelSpeedL * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
+            botSpeedMS = (botSpeedMSLeft + botSpeedMSRight)/2
+            print "botspeedms {0}".format(botSpeedMS)
  
             #Check max speed
             if (abs(botSpeedMS) > self.max_velocity):
-                #Find max velocity in rots 
-                maxBotSpeed = self.max_velocity * (2/self.botDiameter)
-                desiredWheelSpeedL = 2* maxBotSpeed * (desiredWheelSpeedL / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
-                desiredWheelSpeedR = 2* maxBotSpeed * (desiredWheelSpeedR / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
-                finalspeed = (desiredWheelSpeedL + desiredWheelSpeedR) /2
-                print finalspeed
+                desiredWheelSpeedR = ( self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedR
+                desiredWheelSpeedL = (self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedL
+
+                # #Find max velocity in rots 
+
+                # maxBotSpeed = self.max_velocity * (2/self.botDiameter)
+                # desiredWheelSpeedL = 2* maxBotSpeed * (desiredWheelSpeedL / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
+                # desiredWheelSpeedR = 2* maxBotSpeed * (desiredWheelSpeedR / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
+                # finalspeed = (desiredWheelSpeedL + desiredWheelSpeedR) /2
+                # print finalspeed
+            
+
 
         #the desired point has been tracked, so don't move
+        
         else:
             desiredWheelSpeedR = 0
             desiredWheelSpeedL = 0
                 
         return desiredWheelSpeedR,desiredWheelSpeedL
 
-    
+    # def path_tracker(self):
+
+    #     point1 = [0, 0, 0]
+    #     point2 = [0.5, 0, 0]
+    #     point3 = [1, 0, 0]
+        
+    #     for ()
+    #     self.state_des.set_state(x, y, theta)
+
     def send_control(self, R, L, deltaT):
         
         # send to actual robot !!!!!!!!
