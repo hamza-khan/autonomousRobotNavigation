@@ -39,7 +39,7 @@ class E160_robot:
         self.Kalpha = 2.0 #2.0
         self.Kbeta = -0.5 #-0.5
         self.KalphaTheta = 2.0 #2.0
-        self.KbetaTheta = -0.5 #-0.5
+        self.KbetaTheta = 1.5 #-0.5
         self.max_velocity = 0.05
         self.point_tracked = True
         self.encoder_per_sec_to_rad_per_sec = 10
@@ -159,7 +159,7 @@ class E160_robot:
             #second controller
             xThreshold = 0.05
             yThreshold = 0.05
-            thetaThreshold = 0.05
+            thetaThreshold = 0.1
             if (abs(delta_x) < xThreshold) & (abs(delta_y) < yThreshold):
                 desiredV = 0
                 desiredW = self.KalphaTheta*alpha + self.KbetaTheta*beta  
@@ -189,8 +189,8 @@ class E160_robot:
  
             #Check max speed
             if (abs(botSpeedMS) > self.max_velocity):
-                desiredWheelSpeedR = ( self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedR
-                desiredWheelSpeedL = (self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedL
+                desiredWheelSpeedR = 2*( self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedR
+                desiredWheelSpeedL = 2*(self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedL
 
                 # #Find max velocity in rots 
 
