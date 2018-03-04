@@ -43,6 +43,8 @@ class E160_robot:
         self.max_velocity = 0.05
         self.point_tracked = True
         self.encoder_per_sec_to_rad_per_sec = 10
+
+        self.stepCount = 0
         
         
     def update(self, deltaT):
@@ -106,10 +108,82 @@ class E160_robot:
             desiredWheelSpeedL = self.manual_control_left_motor
             
         elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":   
-            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+            desiredWheelSpeedR, desiredWheelSpeedL = self.straigth_line_test()
             
         return desiredWheelSpeedR, desiredWheelSpeedL
   
+
+    def straight_line_path(self, startState, endState):
+        minStateInterval = 0.05
+        totalDeltaX = endState.x - startState.x
+        totalDeltaY = endState.y - startState.y
+        if abs(totalDeltaY)>abs(totalDeltaX):
+            totalTimeSteps = math.floor(totalDeltaX/minStateInterval) + 1
+        else:
+            totalTimeSteps = math.floor(totalDeltaY/minStateInterval) + 1
+
+        if self.stepCount == 0:
+            #start facing the right direction
+            
+
+
+    def straigth_line_test(self):
+
+        firstState = E160_state()
+        firstState.set_state(0.0,0.0,0.0)
+        secondState = E160_state()
+        secondState.set_state(0.05,0.05,0.785)
+        thirdState = E160_state()
+        thirdState.set_state(0.1,0.1,0.785)
+        fourthState = E160_state()
+        fourthState.set_state(0.15,0.15,0.785)
+        fifthState = E160_state()
+        fifthState.set_state(0.2,0.2,0.785)
+        lastState = E160_state()
+        lastState.set_state(0.25,0.25,0.785)
+
+        if self.stepCount == 0:
+            self.state_des = secondState
+            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+            deltaX = self.state_des.x - self.state_est.x
+            deltaY = self.state_des.y - self.state_est.y        
+            deltaStartX = secondState.x - firstState.x
+            deltaStartY = secondState.y - firstState.y
+            if (deltaX>=deltaStartX/2) & (deltaY>=deltaStartY/2):
+                self.stepCount += 1
+
+        elif self.stepCount == 1:
+            self.state_des = thirdState
+            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+            deltaX = self.state_des.x - self.state_est.x
+            deltaY = self.state_des.y - self.state_est.y        
+            deltaStartX = thirdState.x - secondState.x
+            deltaStartY = thirdState.y - secondState.y
+            if (deltaX>=deltaStartX/2) & (deltaY>=deltaStartY/2):
+                self.stepCount += 1
+ 
+        elif self.stepCount == 2:
+            self.state_des = fourthState
+            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+            deltaX = self.state_des.x - self.state_est.x
+            deltaY = self.state_des.y - self.state_est.y        
+            deltaStartX = fourthState.x - thirdState.x
+            deltaStartY = fourthState.y - thirdState.y
+            if (deltaX>=deltaStartX/2) & (deltaY>=deltaStartY/2):
+                self.stepCount += 1
+ 
+        
+        else:
+            self.state_des = lastState
+            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+
+
+        return desiredWheelSpeedR,desiredWheelSpeedL
+
+
+
+
+
 
 
     def point_tracker_control(self):
