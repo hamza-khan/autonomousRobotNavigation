@@ -25,7 +25,7 @@ class E160_robot:
         self.robot_id = robot_id
         self.manual_control_left_motor = 0
         self.manual_control_right_motor = 0
-        self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
+        self.file_name = 'Log/Bot' + str(self.robot_id) + '_PathTracking_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
         self.make_headers()
         self.encoder_resolution = 1440
         
@@ -108,7 +108,7 @@ class E160_robot:
             desiredWheelSpeedL = self.manual_control_left_motor
             
         elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":   
-            desiredWheelSpeedR, desiredWheelSpeedL = self.straigth_line_test()
+            desiredWheelSpeedR, desiredWheelSpeedL = self.straight_line_test()
             
         return desiredWheelSpeedR, desiredWheelSpeedL
   
@@ -122,58 +122,59 @@ class E160_robot:
         else:
             totalTimeSteps = math.floor(totalDeltaY/minStateInterval) + 1
 
-        if self.stepCount == 0:
-            #start facing the right direction
-            
 
 
-    def straigth_line_test(self):
+    def straight_line_test(self):
 
         firstState = E160_state()
         firstState.set_state(0.0,0.0,0.0)
         secondState = E160_state()
-        secondState.set_state(0.05,0.05,0.785)
+        secondState.set_state(0.0,0.0,0.785)
         thirdState = E160_state()
-        thirdState.set_state(0.1,0.1,0.785)
+        thirdState.set_state(0.4,0.4,0.785)
         fourthState = E160_state()
-        fourthState.set_state(0.15,0.15,0.785)
+        fourthState.set_state(0.6,-0.6,-0.785)
         fifthState = E160_state()
-        fifthState.set_state(0.2,0.2,0.785)
+        fifthState.set_state(0.0,0.0,0.785)
         lastState = E160_state()
-        lastState.set_state(0.25,0.25,0.785)
+        lastState.set_state(0.0,0.0,0.0)
 
         if self.stepCount == 0:
+            print "second state"
             self.state_des = secondState
             desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
             deltaX = self.state_des.x - self.state_est.x
             deltaY = self.state_des.y - self.state_est.y        
             deltaStartX = secondState.x - firstState.x
             deltaStartY = secondState.y - firstState.y
-            if (deltaX>=deltaStartX/2) & (deltaY>=deltaStartY/2):
+            if (deltaX<=deltaStartX/2) & (deltaY<=deltaStartY/2):
                 self.stepCount += 1
 
         elif self.stepCount == 1:
+            print "third state"
             self.state_des = thirdState
             desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
             deltaX = self.state_des.x - self.state_est.x
             deltaY = self.state_des.y - self.state_est.y        
             deltaStartX = thirdState.x - secondState.x
             deltaStartY = thirdState.y - secondState.y
-            if (deltaX>=deltaStartX/2) & (deltaY>=deltaStartY/2):
+            if (deltaX<=deltaStartX/2) & (deltaY<=deltaStartY/2):
                 self.stepCount += 1
  
         elif self.stepCount == 2:
+            print "fourth state"
             self.state_des = fourthState
             desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
             deltaX = self.state_des.x - self.state_est.x
             deltaY = self.state_des.y - self.state_est.y        
             deltaStartX = fourthState.x - thirdState.x
             deltaStartY = fourthState.y - thirdState.y
-            if (deltaX>=deltaStartX/2) & (deltaY>=deltaStartY/2):
+            if (abs(deltaX)<=abs(deltaStartX/2)) & (abs(deltaY)<=abs(deltaStartY/2)):
                 self.stepCount += 1
  
         
         else:
+            print "last state"
             self.state_des = lastState
             desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
 
@@ -209,7 +210,7 @@ class E160_robot:
             
             #if in front of robot
             if abs(alpha) < math.pi/2:
-                print "im going forward"
+    #            print "im going forward"
                 #constants for forward movement
                 rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
                 alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
@@ -220,7 +221,7 @@ class E160_robot:
             
             #if behind robot
             if abs(alpha) >= math.pi/2:
-                print "im going backwards"
+     #           print "im going backwards"
                 #constants for backwards movement
                 rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
                 alpha = self.angle_wrap(-thetaEstimate + math.atan2(-delta_y, -delta_x))
@@ -242,8 +243,7 @@ class E160_robot:
             if (abs(delta_x) < xThreshold) & (abs(delta_y) < yThreshold) & (abs(delta_theta) < thetaThreshold):
                 self.point_tracked = True
 
-            print "desired V {0}".format(desiredV)
-
+      
             #set desired rotational rate and desired wheel speed 
             L = self.botDiameter / 2
             scaleFactor = 10
@@ -259,7 +259,7 @@ class E160_robot:
             botSpeedMSRight = ( desiredWheelSpeedR * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
             botSpeedMSLeft  = ( desiredWheelSpeedL * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
             botSpeedMS = (botSpeedMSLeft + botSpeedMSRight)/2
-            print "botspeedms {0}".format(botSpeedMS)
+      #      print "botspeedms {0}".format(botSpeedMS)
  
             #Check max speed
             if (abs(botSpeedMS) > self.max_velocity):
@@ -326,7 +326,7 @@ class E160_robot:
         
     def make_headers(self):
         f = open(self.file_name, 'a+')
-        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('R1', 'R2', 'R3', 'RW', 'LW'))
+        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('X', 'Y', 'Theta', 'RW', 'LW'))
         f.close()
 
         
@@ -335,7 +335,7 @@ class E160_robot:
         f = open(self.file_name, 'a+')
         
         # edit this line to have data logging of the data you care about
-        data = [str(x) for x in [1,2,3,4,5]]
+        data = [str(x) for x in [self.state_est.x, self.state_est.y, self.state_est.theta, self.R, self.L]]
         
         f.write(' '.join(data) + '\n')
         f.close()
