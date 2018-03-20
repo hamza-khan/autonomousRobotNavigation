@@ -108,7 +108,7 @@ class E160_robot:
             desiredWheelSpeedL = self.manual_control_left_motor
             
         elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":   
-            desiredWheelSpeedR, desiredWheelSpeedL = self.straight_line_test()
+            desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
             
         return desiredWheelSpeedR, desiredWheelSpeedL
   
@@ -326,7 +326,7 @@ class E160_robot:
         
     def make_headers(self):
         f = open(self.file_name, 'a+')
-        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('X', 'Y', 'Theta', 'RW', 'LW'))
+        f.write('{0} {1:^1} {2:^1} \n'.format('X', 'Y', 'Theta'))
         f.close()
 
         
@@ -335,7 +335,7 @@ class E160_robot:
         f = open(self.file_name, 'a+')
         
         # edit this line to have data logging of the data you care about
-        data = [str(x) for x in [self.state_est.x, self.state_est.y, self.state_est.theta, self.R, self.L]]
+        data = [str(x) for x in [self.state_est.x, self.state_est.y, self.state_est.theta]]
         
         f.write(' '.join(data) + '\n')
         f.close()
