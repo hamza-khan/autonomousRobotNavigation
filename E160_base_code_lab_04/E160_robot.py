@@ -33,7 +33,7 @@ class E160_robot:
         self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
         self.make_headers()
         self.encoder_resolution = 1440
-        
+        # random
         self.last_encoder_measurements = [0,0]
         self.encoder_measurements = [0,0]
         self.range_measurements = [0,0,0]
@@ -43,9 +43,13 @@ class E160_robot:
         self.Kpho = 1#1.0
         self.Kalpha = 2#2.0
         self.Kbeta = -0.5#-0.5
+        self.KalphaTheta = 2.0 #2.0
+        self.KbetaTheta = 1.5 #-0.5
         self.max_velocity = 0.05
         self.point_tracked = True
         self.encoder_per_sec_to_rad_per_sec = 10
+
+        self.stepCount = 0
 
         self.PF = E160_PF(environment, self.width, self.wheel_radius, self.encoder_resolution)
         
@@ -135,18 +139,108 @@ class E160_robot:
 
         # If the desired point is not tracked yet, then track it
         if not self.point_tracked:
-
-            
             ############ Student code goes here ############################################
+            #angle wrap desired theta
+            self.state_des.theta = self.angle_wrap(self.state_des.theta)
+
+            #get delta values as desired state - current state estimate
+            delta_x = self.state_des.x - self.state_est.x
+            delta_y = self.state_des.y - self.state_est.y
+            delta_theta = self.state_des.theta - self.state_est.theta
+
+            #get the angle between the current state point and the desired state point to 
+            #determine which way the robot is facing
+            thetaEstimateToDesired = math.atan2(delta_y, delta_x) 
+            thetaEstimate = self.state_est.theta
+           
+            #set alpha
+            alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
             
+            #if in front of robot
+            if abs(alpha) < math.pi/2:
+    #            print "im going forward"
+                #constants for forward movement
+                rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
+                alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
+                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_des.theta)
+                # use constants to get forward and rotational velocity
+                desiredV = self.Krho*rho
+                desiredW = self.Kalpha*alpha + self.Kbeta*beta
             
-            pass 
-        # the desired point has been tracked, so don't move
+            #if behind robot
+            if abs(alpha) >= math.pi/2:
+     #           print "im going backwards"
+                #constants for backwards movement
+                rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
+                alpha = self.angle_wrap(-thetaEstimate + math.atan2(-delta_y, -delta_x))
+                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_des.theta)
+               
+                # use constants to get forward and rotational velocity
+                desiredV = -self.Krho*rho
+                desiredW = self.Kalpha*alpha + self.Kbeta*beta   
+
+            #second controller
+            xThreshold = 0.05
+            yThreshold = 0.05
+            thetaThreshold = 0.1
+            if (abs(delta_x) < xThreshold) & (abs(delta_y) < yThreshold):
+                desiredV = 0
+                desiredW = self.KalphaTheta*alpha + self.KbetaTheta*beta  
+
+            #checks if AVA is close enough
+            if (abs(delta_x) < xThreshold) & (abs(delta_y) < yThreshold) & (abs(delta_theta) < thetaThreshold):
+                self.point_tracked = True
+
+      
+            #set desired rotational rate and desired wheel speed 
+            L = self.botDiameter / 2
+            scaleFactor = 10
+            desiredRotRateR = (desiredW + ((desiredV)/L)) /2 
+            desiredRotRateL = (desiredW - ((desiredV)/L)) /2 
+            desiredWheelSpeedR = scaleFactor* (desiredRotRateR * 2 * L) / self.wheel_radius
+            desiredWheelSpeedL = scaleFactor* (-desiredRotRateL * 2 * L) / self.wheel_radius
+            #print desiredWheelSpeedL
+
+            #Find m/s bot speed
+            #botSpeed = (desiredWheelSpeedL + desiredWheelSpeedR)/2
+            
+            botSpeedMSRight = ( desiredWheelSpeedR * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
+            botSpeedMSLeft  = ( desiredWheelSpeedL * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
+            botSpeedMS = (botSpeedMSLeft + botSpeedMSRight)/2
+      #      print "botspeedms {0}".format(botSpeedMS)
+ 
+            #Check max speed
+            if (abs(botSpeedMS) > self.max_velocity):
+                desiredWheelSpeedR = 2*( self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedR
+                desiredWheelSpeedL = 2*(self.max_velocity/ (abs(botSpeedMS))) * desiredWheelSpeedL
+
+                # #Find max velocity in rots 
+
+                # maxBotSpeed = self.max_velocity * (2/self.botDiameter)
+                # desiredWheelSpeedL = 2* maxBotSpeed * (desiredWheelSpeedL / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
+                # desiredWheelSpeedR = 2* maxBotSpeed * (desiredWheelSpeedR / (desiredWheelSpeedL+desiredWheelSpeedR)) * (self.encoder_resolution / self.encoder_per_sec_to_rad_per_sec)
+                # finalspeed = (desiredWheelSpeedL + desiredWheelSpeedR) /2
+                # print finalspeed
+            
+
+
+        #the desired point has been tracked, so don't move
+        
         else:
             desiredWheelSpeedR = 0
             desiredWheelSpeedL = 0
                 
         return desiredWheelSpeedR,desiredWheelSpeedL
+
+    # def path_tracker(self):
+
+    #     point1 = [0, 0, 0]
+    #     point2 = [0.5, 0, 0]
+    #     point3 = [1, 0, 0]
+        
+    #     for ()
+    #     self.state_des.set_state(x, y, theta)
+
 
     
     def send_control(self, R, L, deltaT):
