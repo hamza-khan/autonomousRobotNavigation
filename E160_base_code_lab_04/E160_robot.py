@@ -24,6 +24,7 @@ class E160_robot:
         self.radius = 0.147 / 2
         self.width = 2*self.radius
         self.wheel_radius = 0.03
+        self.botDiameter = 0.15
         self.address = address
         self.ID = self.address.encode().__str__()[-1]
         self.last_measurements = []
@@ -40,7 +41,7 @@ class E160_robot:
         self.last_simulated_encoder_R = 0
         self.last_simulated_encoder_L = 0
         
-        self.Kpho = 1#1.0
+        self.Krho = 1#1.0
         self.Kalpha = 2#2.0
         self.Kbeta = -0.5#-0.5
         self.KalphaTheta = 2.0 #2.0

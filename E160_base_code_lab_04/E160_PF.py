@@ -52,8 +52,8 @@ class E160_PF:
 				None'''
 
 		for i in range(0, self.numParticles):
-			#self.SetRandomStartPos(i)
-			self.SetKnownStartPos(i)
+			self.SetRandomStartPos(i)
+			#self.SetKnownStartPos(i)
 
 			
 	def SetRandomStartPos(self, i):
@@ -94,7 +94,7 @@ class E160_PF:
 
 		for i in range(0, self.numParticles):
 			self.Propagate(encoder_measurements,i)
-			self.particles[i].weight = CalculateWeight
+			self.particles[i].weight = self.CalculateWeight(sensor_readings, self.walls, self.particles[i])
 		self.Resample()
 		# end student code here
 		return self.GetEstimatedPos()
@@ -103,7 +103,7 @@ class E160_PF:
 
 	def Gaussian(self, mu, sigma, x):
 	# calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
-		return exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
+		return np.exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / math.sqrt(2.0 * math.pi * (sigma ** 2))
    	# End of helper function added by Aman
 
 
@@ -173,9 +173,9 @@ class E160_PF:
 
 		newWeight = 0
 		# add student code here 
-		dist0 = FindMinWallDistance(particle, walls, sensor_readings[0]) # only looking at left sensor
-		dist1 = FindMinWallDistance(particle, walls, sensor_readings[1]) # only looking at forward sensor
-		dist2 = FindMinWallDistance(particle, walls, sensor_readings[2]) # only looking at right sensor
+		dist0 = self.FindMinWallDistance(particle, walls, sensor_readings[0]) # only looking at left sensor
+		dist1 = self.FindMinWallDistance(particle, walls, sensor_readings[1]) # only looking at forward sensor
+		dist2 = self.FindMinWallDistance(particle, walls, sensor_readings[2]) # only looking at right sensor
 		prob = 1.0;
 		prob *= self.Gaussian(dist0, self.IR_sigma, sensor_readings[0])
 		prob *= self.Gaussian(dist1, self.IR_sigma, sensor_readings[1])
@@ -198,10 +198,10 @@ class E160_PF:
 
 		# list of weights
 		weights = []
-		for i in range(numParticles):
-			weights.append = self.particles[i].weight
+		for i in range(self.numParticles):
+			weights.append(self.particles[i].weight)
 
-		mw = max(weight)
+		mw = max(weights)
 		for i in range(self.numParticles):
 			beta += random.random() * 2.0 * mw
 			while beta > self.particles[index].weight:
@@ -270,18 +270,32 @@ class E160_PF:
 		# add student code here 
 
 		# wall
-		slope_wall = (wall.points[3]-wall.points[1])/(wall.points[2]-wall.points[0])
+
+		wall_dy = (wall.points[3]-wall.points[1])
+		wall_dx = (wall.points[2]-wall.points[0])
+		
+		if wall_dx == 0:
+			wall_dx = 0.00001
+
+		slope_wall = wall_dy/wall_dx
+
 		if slope_wall> 9999: # for verticle wall
 			slope_wall = 10000
 
 		y_intercept_wall = wall.points[1] - (slope_wall * wall.points[0])
 
 		# line d
-		slope_d =  math.atan2(particle.heading + sensorT)
+		slope_d =  math.tan(particle.heading + sensorT)
 		y_intercept_d = particle.y - (slope_d * particle.x)
 
 		# point of intersection
-		x_int = (y_intercept_d - y_intercept_wall)/(slope_wall - slope_d);
+
+		slope_diff = slope_wall - slope_d
+
+		if slope_diff == 0:
+			slope_diff = 100000
+
+		x_int = (y_intercept_d - y_intercept_wall)/slope_diff;
 		y_int = (slope_d * x_int) + y_intercept_d
 
 		# check if point of intersection exsist
