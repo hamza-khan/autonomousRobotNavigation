@@ -273,7 +273,7 @@ class E160_PF:
 
     	y_intercept_d = particle.y - (slope_d * particle.x)
 
-    	# slope 
+    	# slope
 
 
 
