@@ -95,6 +95,7 @@ class E160_PF:
 		for i in range(0, self.numParticles):
 			self.Propagate(encoder_measurements,i)
 			self.particles[i].weight = self.CalculateWeight(sensor_readings, self.walls, self.particles[i])
+		
 		self.Resample()
 		# end student code here
 		return self.GetEstimatedPos()
@@ -207,14 +208,19 @@ class E160_PF:
 			while beta > self.particles[index].weight:
 				beta -= self.particles[index].weight
 				index = (index + 1) % self.numParticles
-			p2.append(self.particles[index])
+			
+			x = self.particles[index].x
+			y = self.particles[index].y
+			heading = self.particles[index].heading
+			weight = self.particles[index].weight
+			p = self.Particle(x,y,heading,weight)
+
+			p2.append(p)
+		
 		self.particles = p2
 
 
 		# end student code here
-        
-
-
 
 	def GetEstimatedPos(self):
 		''' Calculate the mean of the particles and return it 
@@ -293,10 +299,10 @@ class E160_PF:
 		slope_diff = slope_wall - slope_d
 
 		if slope_diff == 0:
-			slope_diff = 100000
+			slope_diff = 0.00001
 
 		x_int = (y_intercept_d - y_intercept_wall)/slope_diff;
-		y_int = (slope_d * x_int) + y_intercept_d
+		y_int = (slope_wall * x_int) + y_intercept_wall
 
 		# check if point of intersection exsist
 		if min(wall.points[0],wall.points[2]) <= x_int <= max(wall.points[0],wall.points[2]):

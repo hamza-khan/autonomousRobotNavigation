@@ -24,7 +24,7 @@ class E160_environment:
             
         # create vars for hardware vs simulation
         self.robot_mode = "SIMULATION MODE"#"SIMULATION MODE" or "HARDWARE MODE"
-        self.control_mode = "MANUAL CONTROL MODE"
+        self.control_mode = "AUTONOMOUS CONTROL MODE"
 
         # setup xbee communication
         if (self.robot_mode == "HARDWARE MODE"):
