@@ -52,8 +52,8 @@ class E160_PF:
 				None'''
 
 		for i in range(0, self.numParticles):
-			self.SetRandomStartPos(i)
-			#self.SetKnownStartPos(i)
+			#self.SetRandomStartPos(i)
+			self.SetKnownStartPos(i)
 
 			
 	def SetRandomStartPos(self, i):
@@ -97,6 +97,7 @@ class E160_PF:
 			self.particles[i].weight = self.CalculateWeight(sensor_readings, self.walls, self.particles[i])
 		
 		self.Resample()
+		print "Numper of particles: %i" % len(self.particles)
 		# end student code here
 		return self.GetEstimatedPos()
 
@@ -277,9 +278,30 @@ class E160_PF:
 
 		# wall
 
-		wall_dy = (wall.points[3]-wall.points[1])
-		wall_dx = (wall.points[2]-wall.points[0])
-		
+		if wall.slope == "verticle":
+			x1 = wall.points[0] + wall.radius
+			y1 = wall.points[1] - wall.radius
+			x2 = wall.points[4] - wall.radius
+			y2 = wall.points[5] + wall.radius
+		else:
+			x1 = wall.points[0] + wall.radius
+			y1 = wall.points[1] + wall.radius
+			x2 = wall.points[4] - wall.radius
+			y2 = wall.points[5] - wall.radius
+
+
+
+		wall_dy = (y2-y1)
+		wall_dx = (x2-x1)
+
+		#print "wall is:"
+
+		#for i in range(4):
+			#print (wall.points[i])
+		#print "wall_dy: %f" % (wall_dy)
+		#print "wall_dx: %f" % (wall_dx)
+		#
+
 		if wall_dx == 0:
 			wall_dx = 0.00001
 
@@ -288,7 +310,7 @@ class E160_PF:
 		if slope_wall> 9999: # for verticle wall
 			slope_wall = 10000
 
-		y_intercept_wall = wall.points[1] - (slope_wall * wall.points[0])
+		y_intercept_wall = y1 - (slope_wall * x1)
 
 		# line d
 		slope_d =  math.tan(particle.heading + sensorT)
@@ -305,8 +327,16 @@ class E160_PF:
 		y_int = (slope_wall * x_int) + y_intercept_wall
 
 		# check if point of intersection exsist
-		if min(wall.points[0],wall.points[2]) <= x_int <= max(wall.points[0],wall.points[2]):
-			if min(wall.points[1],wall.points[3]) <= y_int <= max(wall.points[1],wall.points[3]):
+		#print "x_int is: %f" % (x_int)
+		#print "y_int is: %f" % (y_int)
+
+
+		#print "x_min is: %f" % min(wall.points[0],wall.points[2])
+
+		#print "x_min is: %f" % min(wall.points[0],wall.points[2])
+		#print "x_max is: %f" % max(wall.points[0],wall.points[2])
+		if min(x1,x2) <= x_int <= max(x1,x2):
+			if min(y1,y2) <= y_int <= max(y1,y2):
 				x_int = x_int
 				y_int = y_int
 		else:
@@ -317,9 +347,18 @@ class E160_PF:
 
 		distance_to_wall = math.sqrt((x_int**2) + (y_int**2))
 
+		#print "x_int is: %f" % (x_int)
+		#print "y_int is: %f" % (y_int)
+		
+
+
 		# end student code here
 				
 		return distance_to_wall
+
+
+	def findClosestLine(point, line1, line2):
+		'''find the closest line     '''
 
 	
 
