@@ -97,7 +97,6 @@ class E160_PF:
 			self.particles[i].weight = self.CalculateWeight(sensor_readings, self.walls, self.particles[i])
 		
 		self.Resample()
-		print "Numper of particles: %i" % len(self.particles)
 		# end student code here
 		return self.GetEstimatedPos()
 
@@ -283,11 +282,14 @@ class E160_PF:
 			y1 = wall.points[1] - wall.radius
 			x2 = wall.points[4] - wall.radius
 			y2 = wall.points[5] + wall.radius
+			slope_wall = 100000
 		else:
 			x1 = wall.points[0] + wall.radius
 			y1 = wall.points[1] + wall.radius
 			x2 = wall.points[4] - wall.radius
 			y2 = wall.points[5] - wall.radius
+			slope_wall = 0
+			y_intercept_wall = wall.points[1] + wall.radius
 
 
 
@@ -302,13 +304,13 @@ class E160_PF:
 		#print "wall_dx: %f" % (wall_dx)
 		#
 
-		if wall_dx == 0:
-			wall_dx = 0.00001
+		# if wall_dx == 0:
+		# 	wall_dx = 0.00001
 
-		slope_wall = wall_dy/wall_dx
+		# slope_wall = wall_dy/wall_dx
 
-		if slope_wall> 9999: # for verticle wall
-			slope_wall = 10000
+		# if slope_wall> 9999: # for verticle wall
+		# 	slope_wall = 10000
 
 		y_intercept_wall = y1 - (slope_wall * x1)
 
