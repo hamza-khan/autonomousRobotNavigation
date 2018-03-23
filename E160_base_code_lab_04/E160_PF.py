@@ -222,7 +222,7 @@ class E160_PF:
 			weights.append(self.particles[i].weight)
 
 		mw = max(weights)
-		print "max weight: %f" % (mw)
+		# print "max weight: %f" % (mw)
 		
 
 		for i in range(self.numParticles):
@@ -327,7 +327,7 @@ class E160_PF:
 					x_int = x1
 				else:
 					# sensor is facing left
-					x_int = 10000
+					x_int = -10000
 			# wall is on the left
 			else:
 				# and sensor is facing right
@@ -360,7 +360,7 @@ class E160_PF:
 					y_int = y2
 				# sensor is facing down
 				else:
-					y_int = 10000
+					y_int = -10000
 			# wall is down
 			else:
 				#check if sensor is facing up
@@ -448,7 +448,7 @@ class E160_PF:
 
 
 		# # end student code here
-				
+		print "distance to the wall is: %f" % distance_to_wall		
 		return distance_to_wall
 
 
