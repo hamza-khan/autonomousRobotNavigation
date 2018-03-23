@@ -384,7 +384,7 @@ class E160_PF:
 			x_int = 1000
 			y_int = 1000
 
-		distance_to_wall = math.sqrt((x_int**2) + (y_int**2))
+		distance_to_wall = math.sqrt(((x_int-particle.x)**2) + ((y_int - particle.y) **2))
 
 
 
@@ -448,7 +448,7 @@ class E160_PF:
 
 
 		# # end student code here
-		print "distance to the wall is: %f" % distance_to_wall		
+		#print "distance to the wall is: %f" % distance_to_wall		
 		return distance_to_wall
 
 
