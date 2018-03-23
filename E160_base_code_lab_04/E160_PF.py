@@ -52,8 +52,8 @@ class E160_PF:
 				None'''
 
 		for i in range(0, self.numParticles):
-			#self.SetRandomStartPos(i)
-			self.SetKnownStartPos(i)
+			self.SetRandomStartPos(i)
+			# self.SetKnownStartPos(i)
 
 			
 	def SetRandomStartPos(self, i):
@@ -130,7 +130,7 @@ class E160_PF:
 		    diffEncoder1 = 0
 
 		#Localization
-		wheelDistanceL = - 2 * 3.14 * self.wheel_radius / self.encoder_resolution * (diffEncoder0); # Negative since this is left wheel
+		wheelDistanceL = (- 2 * 3.14 * self.wheel_radius / self.encoder_resolution * (diffEncoder0)); # Negative since this is left wheel
 		wheelSigmaL = 0.2 * wheelDistanceL
 		wheelDistanceL += random.gauss(0.0, wheelSigmaL) 
 		wheelDistanceR = (+ 2 * 3.14 * self.wheel_radius / self.encoder_resolution * (diffEncoder1)); # Positive since this is right wheel
@@ -150,10 +150,11 @@ class E160_PF:
 		x = self.particles[i].x
 		y = self.particles[i].y
 		theta = self.particles[i].heading
-		x += delta_s*(math.cos(theta+delta_theta))
-		y += delta_s*(math.sin(theta+delta_theta))
 		heading = theta + delta_theta 
-		heading %= 2+math.pi
+		heading = self.angleDiff(heading)
+		x += delta_s*(math.cos(heading))
+		y += delta_s*(math.sin(heading))
+		
 
 		self.particles[i].x = x
 		self.particles[i].y = y
@@ -174,10 +175,28 @@ class E160_PF:
 
 		newWeight = 0
 		# add student code here 
-		dist0 = self.FindMinWallDistance(particle, walls, sensor_readings[0]) # only looking at left sensor
-		dist1 = self.FindMinWallDistance(particle, walls, sensor_readings[1]) # only looking at forward sensor
-		dist2 = self.FindMinWallDistance(particle, walls, sensor_readings[2]) # only looking at right sensor
-		prob = 1.0;
+		# dist1 = self.FindMinWallDistance(particle, walls, self.sensor_orientation[1]) 
+
+		# if sensor_orientation == 0:
+		# 	for i in range(len(walls)):
+		# 		if walls[i].slope == "vertical":
+		# 			x1 = walls[i].points[0] + walls[i].radius
+		# 			y1 = walls[i].points[1] - walls[i].radius
+		# 			x2 = walls[i].points[4] - walls[i].radius
+		# 			y2 = walls[i].points[5] + walls[i].radius
+		# 		else:
+		# 			x1 = walls[i].points[0] + walls[i].radius
+		# 			y1 = walls[i].points[1] + walls[i].radius
+		# 			x2 = walls[i].points[4] - walls[i].radius
+		# 			y2 = walls[i].points[5] - walls[i].radius
+
+
+		dist0 = self.FindMinWallDistance(particle, walls, self.sensor_orientation[0]) # only looking at left sensor
+		dist1 = self.FindMinWallDistance(particle, walls, self.sensor_orientation[1]) # only looking at forward sensor
+		dist2 = self.FindMinWallDistance(particle, walls, self.sensor_orientation[2]) # only looking at right sensor
+		# prob = self.Gaussian(dist0, self.IR_sigma, sensor_readings[0]) * self.Gaussian(dist1, self.IR_sigma, sensor_readings[1]) * self.Gaussian(dist2, self.IR_sigma, sensor_readings[2])
+		
+		prob = 1.0
 		prob *= self.Gaussian(dist0, self.IR_sigma, sensor_readings[0])
 		prob *= self.Gaussian(dist1, self.IR_sigma, sensor_readings[1])
 		prob *= self.Gaussian(dist2, self.IR_sigma, sensor_readings[2])
@@ -203,6 +222,9 @@ class E160_PF:
 			weights.append(self.particles[i].weight)
 
 		mw = max(weights)
+		print "max weight: %f" % (mw)
+		
+
 		for i in range(self.numParticles):
 			beta += random.random() * 2.0 * mw
 			while beta > self.particles[index].weight:
@@ -277,89 +299,160 @@ class E160_PF:
 
 		# wall
 
-		if wall.slope == "verticle":
+		sensor_heading = particle.heading + sensorT
+		sensor_heading = self.angleDiff(sensor_heading)
+
+		# if abs(sensor_heading) == 
+
+
+		slope_d =  math.tan(sensor_heading)
+
+
+		y_intercept_d = particle.y - (slope_d * particle.x)
+
+		if slope_d == 0:
+			slope_d = 0.00000001
+
+
+		# check if wall is vertical
+		if wall.slope == "vertical":
 			x1 = wall.points[0] + wall.radius
 			y1 = wall.points[1] - wall.radius
 			x2 = wall.points[4] - wall.radius
 			y2 = wall.points[5] + wall.radius
-			slope_wall = 100000
+			#check if the wall is on the right of the particle
+			if particle.x< x1:
+				# and sensor is facing right
+				if (-math.pi/2) <= sensor_heading <= (math.pi/2):
+					x_int = x1
+				else:
+					# sensor is facing left
+					x_int = 10000
+			# wall is on the left
+			else:
+				# and sensor is facing right
+				if (-math.pi/2) <= sensor_heading <= (math.pi/2):
+					x_int = 10000
+				else:
+					#  sensor is facing left
+					x_int = x1
+			
+			y_int = (slope_d*x_int) + y_intercept_d
+			# min_y = min(y1,y2)
+			# max_y = max(y1,y2)
+			# if min_y <= y_int <= max_y:
+			# 	x_int = x_int
+			# 	y_int = y_int
+			# else:
+			# 	x_int = 10000
+			# 	y_int = 10000
+		# horizontal wall
 		else:
 			x1 = wall.points[0] + wall.radius
 			y1 = wall.points[1] + wall.radius
 			x2 = wall.points[4] - wall.radius
 			y2 = wall.points[5] - wall.radius
-			slope_wall = 0
-			y_intercept_wall = wall.points[1] + wall.radius
 
-
-
-		wall_dy = (y2-y1)
-		wall_dx = (x2-x1)
-
-		#print "wall is:"
-
-		#for i in range(4):
-			#print (wall.points[i])
-		#print "wall_dy: %f" % (wall_dy)
-		#print "wall_dx: %f" % (wall_dx)
-		#
-
-		# if wall_dx == 0:
-		# 	wall_dx = 0.00001
-
-		# slope_wall = wall_dy/wall_dx
-
-		# if slope_wall> 9999: # for verticle wall
-		# 	slope_wall = 10000
-
-		y_intercept_wall = y1 - (slope_wall * x1)
-
-		# line d
-		slope_d =  math.tan(particle.heading + sensorT)
-		y_intercept_d = particle.y - (slope_d * particle.x)
-
-		# point of intersection
-
-		slope_diff = slope_wall - slope_d
-
-		if slope_diff == 0:
-			slope_diff = 0.00001
-
-		x_int = (y_intercept_d - y_intercept_wall)/slope_diff;
-		y_int = (slope_wall * x_int) + y_intercept_wall
-
-		# check if point of intersection exsist
-		#print "x_int is: %f" % (x_int)
-		#print "y_int is: %f" % (y_int)
-
-
-		#print "x_min is: %f" % min(wall.points[0],wall.points[2])
-
-		#print "x_min is: %f" % min(wall.points[0],wall.points[2])
-		#print "x_max is: %f" % max(wall.points[0],wall.points[2])
-		if min(x1,x2) <= x_int <= max(x1,x2):
-			if min(y1,y2) <= y_int <= max(y1,y2):
-				x_int = x_int
-				y_int = y_int
+			# check if the wall is above
+			if particle.y<y2:
+				#check if sensor is facing up
+				if 0 <= sensor_heading <= math.pi:
+					y_int = y2
+				# sensor is facing down
+				else:
+					y_int = 10000
+			# wall is down
+			else:
+				#check if sensor is facing up
+				if 0 <= sensor_heading <= math.pi:
+					y_int = 10000
+				# sensor is facing down
+				else:
+					y_int = y2
+			#y_int = y2
+			x_int = (y_int - y_intercept_d)/slope_d
+		
+		min_x = min(x1,x2)
+		max_x = max(x1,x2) 
+		min_y = min(y1,y2)
+		max_y = max(y1,y2) 
+		
+		if min_x <= x_int <= max_x and min_y <= y_int <= max_y:
+			x_int = x_int
+			y_int = y_int
 		else:
-			x_int = 10000
-			y_int = 10000
-
-		# length d
+			x_int = 1000
+			y_int = 1000
 
 		distance_to_wall = math.sqrt((x_int**2) + (y_int**2))
 
-		#print "x_int is: %f" % (x_int)
-		#print "y_int is: %f" % (y_int)
+
+
+		# wall_dy = (y2-y1)
+		# wall_dx = (x2-x1)
+
+		# #print "wall is:"
+
+		# #for i in range(4):
+		# 	#print (wall.points[i])
+		# #print "wall_dy: %f" % (wall_dy)
+		# #print "wall_dx: %f" % (wall_dx)
+		# #
+
+		# # if wall_dx == 0:
+		# # 	wall_dx = 0.00001
+
+		# # slope_wall = wall_dy/wall_dx
+
+		# # if slope_wall> 9999: # for verticle wall
+		# # 	slope_wall = 10000
+
+		# y_intercept_wall = y1 - (slope_wall * x1)
+
+		# # line d
+
+		# # point of intersection
+
+		# slope_diff = slope_wall - slope_d
+
+		# if slope_diff == 0:
+		# 	slope_diff = 0.00001
+
+		# x_int = (y_intercept_d - y_intercept_wall)/slope_diff;
+		# y_int = (slope_wall * x_int) + y_intercept_wall
+
+		# # check if point of intersection exsist
+		# #print "x_int is: %f" % (x_int)
+		# #print "y_int is: %f" % (y_int)
+
+
+		# #print "x_min is: %f" % min(wall.points[0],wall.points[2])
+
+		# #print "x_min is: %f" % min(wall.points[0],wall.points[2])
+		# #print "x_max is: %f" % max(wall.points[0],wall.points[2])
+		# if min(x1,x2) <= x_int <= max(x1,x2):
+		# 	if min(y1,y2) <= y_int <= max(y1,y2):
+		# 		x_int = x_int
+		# 		y_int = y_int
+		# else:
+		# 	x_int = 10000
+		# 	y_int = 10000
+
+		# # length d
+
+		
+
+		# #print "x_int is: %f" % (x_int)
+		# #print "y_int is: %f" % (y_int)
 		
 
 
-		# end student code here
+		# # end student code here
 				
 		return distance_to_wall
 
 
-	def findClosestLine(point, line1, line2):
+	# def findClosestLine(point, line1, line2):
 		'''find the closest line     '''
 
 	
