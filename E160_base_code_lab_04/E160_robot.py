@@ -288,13 +288,14 @@ class E160_robot:
         
         
     def log_data(self):
-        f = open(self.file_name, 'a+')
+        pass
+        #f = open(self.file_name, 'a+')
         
         # edit this line to have data logging of the data you care about
-        data = [str(x) for x in [1,2,3,4,5]]
+        #data = [str(x) for x in [1,2,3,4,5]]
         
-        f.write(' '.join(data) + '\n')
-        f.close()
+        #f.write(' '.join(data) + '\n')
+        #f.close()
         
         
     def set_manual_control_motors(self, R, L):

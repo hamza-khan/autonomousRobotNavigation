@@ -15,11 +15,13 @@ class E160_environment:
         
         # set up walls, putting top left point first
         self.walls = []
-        self.walls.append(E160_wall([-0.5, 0.5, -0.5, -0.5],"vertical"))
-        self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
-        self.walls.append(E160_wall([-0.5, 0.5, 0.5, 0.5],"horizontal"))
-        # self.walls.append(E160_wall([-0.1, 0.2, 0.2, 0.2],"horizontal"))
-        # self.walls.append(E160_wall([0.1, 0.4, 0.1, 0.2],"vertical"))
+        #self.walls.append(E160_wall([-0.5, 0.5, -0.5, -0.5],"vertical"))
+        #self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
+        #self.walls.append(E160_wall([-0.5, 0.5, 0.5, 0.5],"horizontal"))
+        
+        self.walls.append(E160_wall([-0.305, -0.35, -0.305, 0.35],"vertical"))
+        self.walls.append(E160_wall([0.305, 0.35, -0.305, 0.35],"horizontal"))
+        self.walls.append(E160_wall([0.305, -0.35, -0.305, -0.35],"horizontal"))
         
 
 
@@ -28,12 +30,12 @@ class E160_environment:
         # self.walls.append(E160_wall([-0.5, -0.5, 0.0, -1.0],"vertical"))
             
         # create vars for hardware vs simulation
-        self.robot_mode = "SIMULATION MODE"#"SIMULATION MODE" or "HARDWARE MODE"
+        self.robot_mode = "HARDWARE MODE"#"SIMULATION MODE" or "HARDWARE MODE"
         self.control_mode = "AUTONOMOUS CONTROL MODE"
 
         # setup xbee communication
         if (self.robot_mode == "HARDWARE MODE"):
-            self.serial_port = serial.Serial('/dev/tty.usbserial-DN01IWND', 9600)
+            self.serial_port = serial.Serial('COM5', 9600)
             print" Setting up serial port"
             try:
                 self.xbee = XBee(self.serial_port)
@@ -62,8 +64,8 @@ class E160_environment:
         
         # loop over all robots and update their state
         for r in self.robots:
-            r.log_data()
-            
+            r.log_data()   
+        
     def quit(self):
         self.xbee.halt()
         self.serial.close()
