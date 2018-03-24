@@ -97,6 +97,10 @@ class E160_PF:
 			self.Propagate(encoder_measurements,i)
 			self.particles[i].weight = self.CalculateWeight(sensor_readings, self.walls, self.particles[i])
 		
+		#save encoder_measurements for next time
+		self.last_encoder_measurements[0] = encoder_measurements[0];
+		self.last_encoder_measurements[1] = encoder_measurements[1];
+		
 		self.Resample()
 		# end student code here
 		return self.GetEstimatedPos()
@@ -127,9 +131,14 @@ class E160_PF:
 		diffEncoder1 = -(encoder_measurements[1]-self.last_encoder_measurements[1]);
 
 		# At the first iteration, zero out
-		if abs(diffEncoder0)> 1000 or abs(diffEncoder1)> 1000:
-		    diffEncoder0 = 0
-		    diffEncoder1 = 0
+		#if abs(diffEncoder0)> 1000 or abs(diffEncoder1)> 1000:
+		#    diffEncoder0 = 0
+		#    diffEncoder1 = 0
+
+		if diffEncoder0 == 0.0 and diffEncoder1 == 0.0:
+			print "no movement"
+			print "encoder_measurements[0]: %f" % (encoder_measurements[0])
+			print "last_encoder_measurements[0]: %f" % (self.last_encoder_measurements[0])
 
 		#Localization
 		wheelDistanceL = (- 2 * 3.14 * self.wheel_radius / self.encoder_resolution * (diffEncoder0)); # Negative since this is left wheel
@@ -141,8 +150,8 @@ class E160_PF:
 
 		# print wheelDistanceL
 		# remember for next time
-		self.last_encoder_measurements[0] = encoder_measurements[0];
-		self.last_encoder_measurements[1] = encoder_measurements[1];
+		#self.last_encoder_measurements[0] = encoder_measurements[0];
+		#self.last_encoder_measurements[1] = encoder_measurements[1];
 
 		# Calculate delta_S, deltta_theta
 		delta_s = 0.5 * (wheelDistanceR + wheelDistanceL);
