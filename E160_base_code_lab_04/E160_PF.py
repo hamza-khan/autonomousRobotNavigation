@@ -37,10 +37,10 @@ class E160_PF:
 		self.state.set_state(0,0,0)
 
 		# TODO: change this later
-		self.map_maxX = 1.0
-		self.map_minX = -1.0
-		self.map_maxY = 1.0
-		self.map_minY = -1.0
+		self.map_maxX = 0.5
+		self.map_minX = -0.5
+		self.map_maxY = 0.5
+		self.map_minY = -0.5
 		self.InitializeParticles()
 		self.last_encoder_measurements =[0,0]
 
@@ -53,7 +53,7 @@ class E160_PF:
 
 		for i in range(0, self.numParticles):
 			self.SetRandomStartPos(i)
-			# self.SetKnownStartPos(i)
+			#self.SetKnownStartPos(i)
 
 			
 	def SetRandomStartPos(self, i):
@@ -90,7 +90,8 @@ class E160_PF:
 				sensor_readings([float, float, float]): sensor readings from range fingers
 			Return:
 				None'''
-		# add student code here 
+		# add student code here
+
 
 		for i in range(0, self.numParticles):
 			self.Propagate(encoder_measurements,i)
@@ -100,12 +101,13 @@ class E160_PF:
 		# end student code here
 		return self.GetEstimatedPos()
 
-	# helper functions added by Aman
+	# helper function added by Aman
 
 	def Gaussian(self, mu, sigma, x):
-	# calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
-		return np.exp(- ((mu - x) ** 2) / (sigma ** 2) / 2.0) / math.sqrt(2.0 * math.pi * (sigma ** 2))
-   	# End of helper function added by Aman
+
+		# calculates the probability of x for 1-dim Gaussian with mean mu and var. sigma
+		den = 1/(sigma*math.sqrt(math.pi*2.0))
+		return np.exp(- ((mu - x) ** 2) / ((sigma ** 2)* 2.0)) / den
 
 
 	def Propagate(self, encoder_measurements, i):
@@ -154,11 +156,13 @@ class E160_PF:
 		heading = self.angleDiff(heading)
 		x += delta_s*(math.cos(heading))
 		y += delta_s*(math.sin(heading))
-		
+		weight = self.particles[i].weight
+		p = self.Particle(x,y,heading,weight)
+		# self.particles[i].x = x
+		# self.particles[i].y = y
+		# self.particles[i].heading = heading
 
-		self.particles[i].x = x
-		self.particles[i].y = y
-		self.particles[i].heading = heading
+		self.particles[i]=p
 
 		# end student code here
 
@@ -222,7 +226,7 @@ class E160_PF:
 			weights.append(self.particles[i].weight)
 
 		mw = max(weights)
-		# print "max weight: %f" % (mw)
+		print "max weight: %f" % (mw)
 		
 
 		for i in range(self.numParticles):
@@ -280,7 +284,7 @@ class E160_PF:
 		distances = []
 
 		for i in range(len(walls)):
-			dist = distances.append(self.FindWallDistance(particle, walls[i], sensorT))
+			distances.append(self.FindWallDistance(particle, walls[i], sensorT))
 
 		min_wall_dist = min(distances)
 		# end student code here
