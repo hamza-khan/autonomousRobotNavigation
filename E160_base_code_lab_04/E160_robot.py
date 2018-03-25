@@ -96,7 +96,7 @@ class E160_robot:
             data = update['rf_data'].decode().split(' ')[:-1]
             data = [int(x) for x in data]
             encoder_measurements = data[-2:]
-            range_measurements = data[:-2]
+            range_measurements = self.scale_range_sensor_measurements(data[:-2])
             
         elif self.environment.robot_mode == "SIMULATION MODE":
             encoder_measurements = self.simulate_encoders(self.R, self.L, deltaT)
@@ -107,6 +107,15 @@ class E160_robot:
         
         return encoder_measurements, range_measurements
 
+    def scale_range_sensor_measurements(self, range_measurements):
+        ''' Scaling function to convert range sensor measurements to distance '''
+        m = -1/763.3
+        c = 1.0074 + self.botDiameter/2
+        distance = []
+        for i in range_measurements:
+            distance.append(i*m + c) 
+        
+        return distance
         
         
     def localize(self, state_est, delta_s, delta_theta, range_measurements):

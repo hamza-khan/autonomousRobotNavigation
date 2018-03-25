@@ -11,7 +11,7 @@ class E160_PF:
 	def __init__(self, environment, robotWidth, wheel_radius, encoder_resolution):
 		self.particles = []
 		self.environment = environment
-		self.numParticles = 400
+		self.numParticles = 200
 		
 		# maybe should just pass in a robot class?
 		self.robotWidth = robotWidth
@@ -21,7 +21,7 @@ class E160_PF:
 		self.FAR_READING = 1000
 		
 		# PF parameters
-		self.IR_sigma = 0.2 # Range finder s.d
+		self.IR_sigma = 0.3 # Range finder s.d
 		#self.odom_xy_sigma = 1.25	# odometry delta_s s.d
 		#self.odom_heading_sigma = 0.75	# odometry heading s.d
 		#self.odom_lwheel_sigma = 
@@ -29,7 +29,7 @@ class E160_PF:
 		self.particle_weight_sum = 0
 
 		# define the sensor orientations
-		self.sensor_orientation = [-math.pi/2, 0, math.pi/2] # orientations of the sensors on robot
+		self.sensor_orientation = [0, -math.pi/2, math.pi/2] # orientations of the sensors on robot
 		self.walls = self.environment.walls
 
 		# initialize the current state

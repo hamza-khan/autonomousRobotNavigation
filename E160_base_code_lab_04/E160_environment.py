@@ -19,9 +19,9 @@ class E160_environment:
         #self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
         #self.walls.append(E160_wall([-0.5, 0.5, 0.5, 0.5],"horizontal"))
         
-        self.walls.append(E160_wall([-0.305, -0.35, -0.305, 0.35],"vertical"))
-        self.walls.append(E160_wall([0.305, 0.35, -0.305, 0.35],"horizontal"))
-        self.walls.append(E160_wall([0.305, -0.35, -0.305, -0.35],"horizontal"))
+        self.walls.append(E160_wall([-0.4, -0.4, -0.4, 0.4],"vertical"))
+        self.walls.append(E160_wall([0.455, 0.4, -0.455, 0.4],"horizontal"))
+        self.walls.append(E160_wall([0.455, -0.4, -0.455, -0.4],"horizontal"))
         
 
 
