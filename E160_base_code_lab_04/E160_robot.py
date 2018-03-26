@@ -204,7 +204,7 @@ class E160_robot:
       
             #set desired rotational rate and desired wheel speed 
             L = self.botDiameter / 2
-            scaleFactor = 10
+            scaleFactor = 3
             desiredRotRateR = (desiredW + ((desiredV)/L)) /2 
             desiredRotRateL = (desiredW - ((desiredV)/L)) /2 
             desiredWheelSpeedR = scaleFactor* (desiredRotRateR * 2 * L) / self.wheel_radius

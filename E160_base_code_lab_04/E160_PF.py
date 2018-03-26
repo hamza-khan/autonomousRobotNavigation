@@ -11,7 +11,7 @@ class E160_PF:
 	def __init__(self, environment, robotWidth, wheel_radius, encoder_resolution):
 		self.particles = []
 		self.environment = environment
-		self.numParticles = 200
+		self.numParticles = 400
 		
 		# maybe should just pass in a robot class?
 		self.robotWidth = robotWidth
@@ -21,7 +21,7 @@ class E160_PF:
 		self.FAR_READING = 1000
 		
 		# PF parameters
-		self.IR_sigma = 0.3 # Range finder s.d
+		self.IR_sigma = 0.6 # Range finder s.d
 		#self.odom_xy_sigma = 1.25	# odometry delta_s s.d
 		#self.odom_heading_sigma = 0.75	# odometry heading s.d
 		#self.odom_lwheel_sigma = 
@@ -140,10 +140,10 @@ class E160_PF:
 
 		#Localization
 		wheelDistanceL = (- 2 * 3.14 * self.wheel_radius / self.encoder_resolution * (diffEncoder0)); # Negative since this is left wheel
-		wheelSigmaL = 0.2 * wheelDistanceL
+		wheelSigmaL = 0.3 * wheelDistanceL
 		wheelDistanceL += random.gauss(0.0, wheelSigmaL) 
 		wheelDistanceR = (+ 2 * 3.14 * self.wheel_radius / self.encoder_resolution * (diffEncoder1)); # Positive since this is right wheel
-		wheelSigmaR = 0.2 * wheelDistanceR
+		wheelSigmaR = 0.3 * wheelDistanceR
 		wheelDistanceR += random.gauss(0.0, wheelSigmaR) 
 
 		# Calculate delta_S, deltta_theta
@@ -230,7 +230,7 @@ class E160_PF:
 			weights.append(self.particles[i].weight)
 
 		mw = max(weights)
-		print "max weight: %f" % (mw)
+		#print "max weight: %f" % (mw)
 		
 
 		for i in range(self.numParticles):
