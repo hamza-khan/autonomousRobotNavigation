@@ -25,7 +25,7 @@ class E160_MP:
        self.num_x_cell = 10
        self.x_grid_cell_size = self.max_x/self.num_x_cell
        self.y_grid_cell_size = self.max_x/self.num_y_cell
-       self.MAX_NODE_NUMBER = 10000
+       self.MAX_NODE_NUMBER = 100000
        self.expansion_range = 0.4
        self.robot_radius = robot_radius
 
@@ -101,79 +101,86 @@ class E160_MP:
 
         # while loop to continue add node until one of the criteria
         # is met
+        
         while(iteration < self.MAX_NODE_NUMBER and path_found == False):
-            
             # Add Code: randomly select an expansion node
             expansion_node = self.select_expansion_node()
 
             # Add Code: From the expansion node, create a new node
-            randLength = 0.05*random.random()
-            randOrientation = self.angle_wrap(2*math.pi()*random.random())
+            randLength = 1.5*self.robot_radius*random.random()
+            randOrientation = self.angle_wrap(2*math.pi*random.random())
     
             #Find orientation and intialize children of new node
             xNewNode = randLength*math.cos(randOrientation) + expansion_node.x
             yNewNode = randLength*math.sin(randOrientation) + expansion_node.y
-            childrenNewNode = []
+            #childrenNewNode = []
 
             #Create new node
-            new_node = self.Node(xNewNode,yNewNode,expansion_node,childrenNewNode,self.num_nodes)
+            new_node = self.Node(xNewNode,yNewNode,expansion_node,[],self.num_nodes)
             
             # Add Code: check collision for the expansion
             #if ...
-            slope = math.tan(randOrientation)
-            y_intercept = yNewNode + slope*xNewNode
-
-            lineEq = slope*xNewNode + y_intercept
-
-            collision = False
-            for i in self.environment.walls:
-                if i.slope == "vertical":
-                    x1 = i.points[0] + wall.radius
-                    y1 = i.points[1] - wall.radius
-                    x2 = i.points[4] - wall.radius
-                    y2 = i.points[5] + wall.radius
-                    
-                    #Check for intersection
-                    x_int = x1
-                    y_int = slope*x_int + y_intercept 
-
-                    min_x = min(x1,x2)
-                    max_x = max(x1,x2) 
-                    min_y = min(y1,y2)
-                    max_y = max(y1,y2) 
-
-                    if min_y <= y_int <= max_y:
-                        collision = True
-                        break
-
-                if i.slope == "horizontal":
-                    x1 = wall.points[0] + wall.radius
-                    y1 = wall.points[1] + wall.radius
-                    x2 = wall.points[4] - wall.radius
-                    y2 = wall.points[5] - wall.radius
-
-                    y_int = y1
-                    x_int = (y_int - y_intercept)/slope
-
-                    min_x = min(x1,x2)
-                    max_x = max(x1,x2) 
-                    min_y = min(y1,y2)
-                    max_y = max(y1,y2) 
-
-                    if min_x <= x_int <= max_x:
-                        collision = True
-                        break
-            
-            #if no collision add node
-            if collision = False:
+            if not self.check_collision(new_node.parent, new_node, self.robot_radius):
                 self.addNode(new_node)
                 expansion_node.children.append(new_node)
-            
-                # Add Code: check if stopping criteria is met or not
+                
 
+            # slope = math.tan(randOrientation)
+            # y_intercept = yNewNode + slope*xNewNode
+
+            # lineEq = slope*xNewNode + y_intercept
+
+            # collision = False
+            # for i in self.environment.walls:
+            #     if i.slope == "vertical":
+            #         x1 = i.points[0] + wall.radius
+            #         y1 = i.points[1] - wall.radius
+            #         x2 = i.points[4] - wall.radius
+            #         y2 = i.points[5] + wall.radius
+                    
+            #         #Check for intersection
+            #         x_int = x1
+            #         y_int = slope*x_int + y_intercept 
+
+            #         min_x = min(x1,x2)
+            #         max_x = max(x1,x2) 
+            #         min_y = min(y1,y2)
+            #         max_y = max(y1,y2) 
+
+            #         if min_y <= y_int <= max_y:
+            #             collision = True
+            #             break
+
+            #     if i.slope == "horizontal":
+            #         x1 = wall.points[0] + wall.radius
+            #         y1 = wall.points[1] + wall.radius
+            #         x2 = wall.points[4] - wall.radius
+            #         y2 = wall.points[5] - wall.radius
+
+            #         y_int = y1
+            #         x_int = (y_int - y_intercept)/slope
+
+            #         min_x = min(x1,x2)
+            #         max_x = max(x1,x2) 
+            #         min_y = min(y1,y2)
+            #         max_y = max(y1,y2) 
+
+            #         if min_x <= x_int <= max_x:
+            #             collision = True
+            #             break
+            
+            #if no collision add node
+            #if collision = False:
                 
-                
-                
+            
+            # Add Code: check if stopping criteria is met or not
+
+            if not self.check_collision(new_node, goal_node, self.robot_radius):
+                goal_node.parent = new_node
+                new_node.children.append(goal_node)                
+                self.addNode(goal_node)
+                expansion_node.children.append(goal_node)
+                path_found = True       
             
             # keep track of the number of attempted expansions
             iteration += 1
@@ -181,6 +188,7 @@ class E160_MP:
         # build the trajectory
         self.traj_node_list = self.build_trajectory(goal_node)
         
+        print self.traj_node_list
         # return the trajectory
         return self.traj_node_list
 
