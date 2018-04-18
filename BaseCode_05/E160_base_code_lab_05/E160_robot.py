@@ -162,8 +162,6 @@ class E160_robot:
             desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
             
         return desiredWheelSpeedR, desiredWheelSpeedL
-  
-
 
     def point_tracker_control(self):
  
@@ -171,17 +169,17 @@ class E160_robot:
         if not self.point_tracked:
             ############ Student code goes here ############################################
             #angle wrap desired theta
-            self.state_des.theta = self.angle_wrap(self.state_des.theta)
+            self.state_curr_dest.theta = self.angle_wrap(self.state_curr_dest.theta)
 
             #get delta values as desired state - current state estimate
-            delta_x = self.state_des.x - self.state_est.x
-            delta_y = self.state_des.y - self.state_est.y
-            delta_theta = self.state_des.theta - self.state_est.theta
+            delta_x = self.state_curr_dest.x - self.state_curr_dest.x
+            delta_y = self.state_curr_dest.y - self.state_curr_dest.y
+            delta_theta = self.state_curr_dest.theta - self.state_curr_dest.theta
 
             #get the angle between the current state point and the desired state point to 
             #determine which way the robot is facing
             thetaEstimateToDesired = math.atan2(delta_y, delta_x) 
-            thetaEstimate = self.state_est.theta
+            thetaEstimate = self.state_curr_dest.theta
            
             #set alpha
             alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
@@ -192,7 +190,7 @@ class E160_robot:
                 #constants for forward movement
                 rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
                 alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
-                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_des.theta)
+                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_curr_dest.theta)
                 # use constants to get forward and rotational velocity
                 desiredV = self.Kpho*rho
                 desiredW = self.Kalpha*alpha + self.Kbeta*beta
@@ -203,7 +201,7 @@ class E160_robot:
                 #constants for backwards movement
                 rho = math.sqrt(math.pow(delta_x, 2.0) + math.pow(delta_y, 2.0))
                 alpha = self.angle_wrap(-thetaEstimate + math.atan2(-delta_y, -delta_x))
-                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_des.theta)
+                beta = self.angle_wrap(-thetaEstimate - alpha + self.state_curr_dest.theta)
                
                 # use constants to get forward and rotational velocity
                 desiredV = -self.Kpho*rho
@@ -224,7 +222,7 @@ class E160_robot:
       
             #set desired rotational rate and desired wheel speed 
             L = self.botDiameter / 2
-            scaleFactor = 3
+            scaleFactor = 5
             desiredRotRateR = (desiredW + ((desiredV)/L)) /2 
             desiredRotRateL = (desiredW - ((desiredV)/L)) /2 
             desiredWheelSpeedR = scaleFactor* (desiredRotRateR * 2 * L) / self.wheel_radius
