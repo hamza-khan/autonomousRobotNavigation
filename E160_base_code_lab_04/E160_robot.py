@@ -3,6 +3,7 @@ from E160_state import *
 from E160_PF import *
 import math
 import datetime
+import time 
 
 class E160_robot:
 
@@ -31,8 +32,12 @@ class E160_robot:
         self.robot_id = robot_id
         self.manual_control_left_motor = 0
         self.manual_control_right_motor = 0
-        self.file_name = 'Log/Bot' + str(self.robot_id) + '_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
+        self.file_name = 'Log/Bot' + str(self.robot_id) + '_SimulationRandomStartManual_' + datetime.datetime.now().replace(microsecond=0).strftime('%y-%m-%d %H.%M.%S') + '.txt'
         self.make_headers()
+        #variables for logging data 
+        self.startTime = time.time()
+        self.loggingData = [0,0]
+
         self.encoder_resolution = 1440
         # random
         self.last_encoder_measurements = [0,0]
@@ -69,6 +74,9 @@ class E160_robot:
         # localize with particle filter
         self.state_est = self.PF.LocalizeEstWithParticleFilter(self.encoder_measurements, self.range_measurements)
 
+        #Calculate the error of the particles for logging
+        self.logData()
+
         # to out put the true location for display purposes only. 
         self.state_draw = self.state_odo
 
@@ -84,6 +92,19 @@ class E160_robot:
         #print(self.state_est.x, self.state_est.y, self.state_est.t)
         # self.state_est.set_state(0,0,0)
     
+    def logData(self):
+        '''function to log data'''
+        particlePositions = self.PF.particles
+        totalError = 0.0
+        for i in particlePositions:
+            distance = math.sqrt( abs(((i.x**2) - (self.state_odo.x**2)) + ((i.y**2) - (self.state_odo.y**2))) )
+            totalError += distance
+
+        netParticleError = totalError/(self.PF.numParticles)
+        self.loggingData = [time.time()-self.startTime, netParticleError]
+        if netParticleError< 0.15:
+            print "Net Particle Error {0} and Time {1}".format(netParticleError,self.loggingData[0])
+
     
     def update_sensor_measurements(self, deltaT):
         
@@ -140,9 +161,52 @@ class E160_robot:
             
         elif self.environment.control_mode == "AUTONOMOUS CONTROL MODE":   
             desiredWheelSpeedR, desiredWheelSpeedL = self.point_tracker_control()
+#            desiredWheelSpeedR, desiredWheelSpeedL = self.test_robot_movement()
             
         return desiredWheelSpeedR, desiredWheelSpeedL
   
+
+    def test_robot_movement(self):
+        '''pre programmed path movement without point tracking'''
+        speed = 45
+        #different time break points definied in seconds
+        time1 = 1
+        time2 = 8
+        time3 = 12
+        time4 = 17
+        time5 = 21
+
+
+        if time.time() < (self.startTime+time1):
+            desiredWheelSpeedR = 0
+            desiredWheelSpeedL = 0
+
+        elif time.time() < (self.startTime + time2):
+            desiredWheelSpeedR = speed
+            desiredWheelSpeedL = speed
+
+        elif time.time() < (self.startTime + time3):
+            desiredWheelSpeedR = speed
+            desiredWheelSpeedL = -speed
+
+        elif time.time() < (self.startTime + time4):
+            desiredWheelSpeedR = speed
+            desiredWheelSpeedL = speed
+
+        elif time.time() < (self.startTime + time5):
+            desiredWheelSpeedR = -speed
+            desiredWheelSpeedL = speed
+        
+        else:
+            desiredWheelSpeedR = 0
+            desiredWheelSpeedL = 0            
+
+
+
+        return desiredWheelSpeedR, desiredWheelSpeedL
+
+
+
 
 
     def point_tracker_control(self):
@@ -243,10 +307,11 @@ class E160_robot:
         return desiredWheelSpeedR,desiredWheelSpeedL
 
     # def path_tracker(self):
-
+    #     '''Path tracker which iteratively calls point tracker'''
     #     point1 = [0, 0, 0]
     #     point2 = [0.5, 0, 0]
     #     point3 = [1, 0, 0]
+
         
     #     for ()
     #     self.state_des.set_state(x, y, theta)
@@ -291,20 +356,20 @@ class E160_robot:
 
     def make_headers(self):
         f = open(self.file_name, 'a+')
-        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('R1', 'R2', 'R3', 'RW', 'LW'))
+        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('Time', 'Error', 'X', 'Y', 'Theta', 'RW', 'LW'))
         f.close()
 
         
         
     def log_data(self):
-        pass
-        #f = open(self.file_name, 'a+')
+        f = open(self.file_name, 'a+')
         
         # edit this line to have data logging of the data you care about
-        #data = [str(x) for x in [1,2,3,4,5]]
+        data = [str(x) for x in [self.loggingData[0], self.loggingData[1], self.state_est.x, self.state_est.y, self.state_est.theta, self.R, self.L]]
         
-        #f.write(' '.join(data) + '\n')
-        #f.close()
+        f.write(' '.join(data) + '\n')
+        f.close()
+        
         
         
     def set_manual_control_motors(self, R, L):
