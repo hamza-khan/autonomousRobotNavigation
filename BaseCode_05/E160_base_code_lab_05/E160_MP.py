@@ -48,7 +48,7 @@ class E160_MP:
 
     def addNode(self, n):
         '''Add node n in self.cell_grid'''
-        # print self.cell_grid.keys()
+        
         col, row = self.getCellNumbder(n)
         if (col, row) in self.cell_grid:
             self.cell_grid[col, row].append(n)
@@ -57,6 +57,8 @@ class E160_MP:
         n.index = self.num_nodes
         self.node_list.append(n)
         self.num_nodes += 1 
+
+        #print self.cell_grid.keys()[0][0]
 
     def getCellNumbder(self, n):
         '''Calculate x and y indices for a given node '''
@@ -107,7 +109,7 @@ class E160_MP:
             expansion_node = self.select_expansion_node()
 
             # Add Code: From the expansion node, create a new node
-            randLength = 2*self.robot_radius*random.random()
+            randLength = 3*self.robot_radius*random.random()
             randOrientation = self.angle_wrap(2*math.pi*random.random())
     
             #Find orientation and intialize children of new node
@@ -120,7 +122,7 @@ class E160_MP:
             
             # Add Code: check collision for the expansion
             #if ...
-            if not self.check_collision(new_node.parent, new_node, self.robot_radius):
+            if not self.check_collision(new_node.parent, new_node, 2.5*self.robot_radius):
                 self.addNode(new_node)
                 expansion_node.children.append(new_node)
                 
@@ -175,7 +177,7 @@ class E160_MP:
             
             # Add Code: check if stopping criteria is met or not
 
-                if not self.check_collision(new_node, goal_node, self.robot_radius):
+                if not self.check_collision(new_node, goal_node, 2.5*self.robot_radius):
                     goal_node.parent = new_node
                     new_node.children.append(goal_node)                
                     self.addNode(goal_node)
