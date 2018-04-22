@@ -167,19 +167,21 @@ class E160_robot:
  
         # If the desired point is not tracked yet, then track it
         if not self.point_tracked:
+            #print "self.state_curr_dest.x {0}".format(self.state_curr_dest.x)
+
             ############ Student code goes here ############################################
             #angle wrap desired theta
             self.state_curr_dest.theta = self.angle_wrap(self.state_curr_dest.theta)
 
             #get delta values as desired state - current state estimate
-            delta_x = self.state_curr_dest.x - self.state_curr_dest.x
-            delta_y = self.state_curr_dest.y - self.state_curr_dest.y
-            delta_theta = self.state_curr_dest.theta - self.state_curr_dest.theta
+            delta_x = self.state_curr_dest.x - self.state_est.x
+            delta_y = self.state_curr_dest.y - self.state_est.y
+            delta_theta = self.state_curr_dest.theta - self.state_est.theta
 
             #get the angle between the current state point and the desired state point to 
             #determine which way the robot is facing
             thetaEstimateToDesired = math.atan2(delta_y, delta_x) 
-            thetaEstimate = self.state_curr_dest.theta
+            thetaEstimate = self.state_est.theta
            
             #set alpha
             alpha = self.angle_wrap(-thetaEstimate + math.atan2(delta_y, delta_x))
@@ -235,7 +237,7 @@ class E160_robot:
             botSpeedMSRight = ( desiredWheelSpeedR * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
             botSpeedMSLeft  = ( desiredWheelSpeedL * (self.wheel_radius) / self.encoder_per_sec_to_rad_per_sec ) #/  self.encoder_resolution
             botSpeedMS = (botSpeedMSLeft + botSpeedMSRight)/2
-      #      print "botspeedms {0}".format(botSpeedMS)
+            #print "botspeedms {0}".format(botSpeedMS)
  
             #Check max speed
             if (abs(botSpeedMS) > self.max_velocity):
