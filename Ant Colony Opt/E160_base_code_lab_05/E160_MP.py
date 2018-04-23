@@ -10,6 +10,7 @@ class E160_MP:
        self.node_list = []
        self.traj_node_list = []
        self.ants = []
+       self.best_path = []
        self.environment = environment
 
        # Variables
@@ -89,7 +90,7 @@ class E160_MP:
                 None
             Return:
                 None'''
-        self.particles = []
+        self.ants = []
         for i in range(0, self.num_ants):
             #self.SetRandomStartPos(i)
             self.SetKnownStartPos(i)
@@ -112,24 +113,30 @@ class E160_MP:
     def SetKnownStartPos(self, i):
         # add student code here 
         probability = [0.25, 0.25, 0.25, 0.25]
-        p = self.Ant( 0, 0, 0, probability)
-        self.ants.append(p)
+        path = []
+        ant = self.Ant( 0, 0, 0, probability, path)
+        self.ants.append(ant)
         # end student code here
         pass
 
-    #def Pheromone(self, current_node, Ant):
-        #Code to calculate ant momement prob
-        # alpha = .5 
-        # beta  = .5
-        # nu = .5
+    def Pheromone(self, current_node, Ant):
+        #Code to calculate ant movement prob
+        #alpha = .5 
+        #beta  = .5
+        #nu = .5
 
-        # #for nodes in cell grid
-        #     if node in current_node.children:
-        #         #pheromone define
-            
-        #     else:
-        #         node.pheromone = 0
-
+        Ant.probability = [0, 0, 0, 0]
+        #adds pheromone probability in [N, E, W, S]
+        for index in range(len(current_node.neighbors)):
+            if current_node.neighbors[index].y == current_node.y + 1:
+                Ant.probability[0] = current_node.neighbors[index].pheromone 
+            if current_node.neighbors[index].x == current_node.x + 1:
+                Ant.probability[1] = current_node.neighbors[index].pheromone
+            if current_node.neighbors[index].x == current_node.x - 1:
+                Ant.probability[2] = current_node.neighbors[index].pheromone 
+            if current_node.neighbors[index].y == current_node.x - 1:
+                Ant.probability[3] = current_node.neighbors[index].pheromone  
+        
 
     def InitializeGrid(self):
         #Code to get grid and set nodes
@@ -174,17 +181,60 @@ class E160_MP:
             #print x,y
             print Node.neighbors
 
-    # def AntColonyPathPlanner(self, goal_node):
-    #     #Add Code to run algorithm 
+    def AntColonyPathPlanner(self, goal_node):
         
+        #Discritize map 
+        self.InitializeGrid()
+
+        #Start ants at nest 
+        self.InitializeAnts()
+
+        #set current_node to start node
+        current_node = self.start_node
+
+        for ant in self.ants:
+            #update ant motion probability
+            self.Pheromone(current_node, ant)
+
+            #determine best direction
+            nextMoveDirection = ant.probability.index(max(ant.probability))
+
+            #Move to next node
+            if nextMoveDirection == 0:
+                #go north
+                ant.y = node.y + 1
+
+            if nextMoveDirection == 1:
+                #go east
+                ant.x = node.x + 1
+
+            if nextMoveDirection == 2:
+                #go west
+                ant.x = node.x - 1
+
+            if nextMoveDirection == 3:
+                #go south
+                ant.y = node.y - 1
+
+            #add to path and set new node
+            ant.path.append(current_node)
+
+            if current_node == goal_node:
+                break
+
+            current_node = current_node.children[nextMoveDirection]
+
+        #Path found!
 
 
-    #     # build the trajectory
-    #     self.traj_node_list = self.build_trajectory(goal_node)
+
+
+        # build the trajectory
+        self.traj_node_list = self.build_trajectory(goal_node)
         
-    #     print self.traj_node_list
-    #     # return the trajectory
-    #     return self.traj_node_list
+        print self.traj_node_list
+        # return the trajectory
+        return self.traj_node_list
 
 
     def MotionPlanner(self, goal_node):
@@ -347,11 +397,12 @@ class E160_MP:
             return '[' + str(self.x) + "," + str(self.y) + "," + str(self.index) +  ']'
 
     class Ant:
-        def __init__(self, x, y, heading, probability):
+        def __init__(self, x, y, heading, probability, path):
             self.x = x
             self.y = y
             self.heading = heading
             self.probability = probability
+            self.path = []
 
         def __str__(self):
             return str(self.x) + " " + str(self.y) + " " + str(self.heading) + " " + str(self.probability)
