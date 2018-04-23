@@ -133,6 +133,23 @@ class E160_ACO:
                     ant.probability[2] = current_node.neighbors[index].pheromone/total_neighbor_pheromones
                 if current_node.neighbors[index].y == current_node.x - 1:
                     ant.probability[3] = current_node.neighbors[index].pheromone/total_neighbor_pheromones
+    
+
+    #sub class grid
+    #write get x, y cell/ grid cell
+    #get cell center 
+    #header file for dim and #cells
+    #walls and obstacles
+    #grid cell, has obstacle notation
+    #space and cell width gives everything 
+
+    #grid in environment? 
+
+    #holonomic constraints
+    #every node have two nodes in trajectory
+    #set orientations for nodes
+    #trajectory needs orientations
+    #do some atan2
 
     def InitializeGrid(self):
         #TODO: add walls as input
