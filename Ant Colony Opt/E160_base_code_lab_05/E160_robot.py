@@ -110,7 +110,8 @@ class E160_robot:
             self.state_curr_dest = self.state_est
 
             # Set goal node
-            goal_node = E160_ACO.Node(self.state_des.x, self.state_des.y)
+            #goal_node = E160_ACO.Node(self.state_des.x, self.state_des.y)
+            goal_node = E160_ACO.Node(10, 10, 0.1, 0, [], 0)
 
             # Generate path with RRT
             node_indices = self.ACO.update_plan(self.state_odo, goal_node)
