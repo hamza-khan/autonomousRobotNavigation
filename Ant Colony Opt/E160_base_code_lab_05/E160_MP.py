@@ -190,7 +190,7 @@ class E160_MP:
         self.InitializeAnts()
 
         #set current_node to start node
-        current_node = self.start_node
+        #current_node = self.start_node
 
         for ant in self.ants:
             #update ant motion probability
@@ -202,30 +202,37 @@ class E160_MP:
             #Move to next node
             if nextMoveDirection == 0:
                 #go north
-                ant.y = node.y + 1
+                ant.current_node = #node.y + 1
 
             if nextMoveDirection == 1:
                 #go east
-                ant.x = node.x + 1
+                ant.current_node = #node.x + 1
 
             if nextMoveDirection == 2:
                 #go west
-                ant.x = node.x - 1
+                ant.current_node = #node.x - 1
 
             if nextMoveDirection == 3:
                 #go south
-                ant.y = node.y - 1
+                ant.current_node = #node.y - 1
 
             #add to path and set new node
             ant.path.append(current_node)
 
+            #check for complete path
             if current_node == goal_node:
-                break
+                #Path found! Check if it's a good path
+                if len(self.best_path) = 0:
+                    #first path found
+                    self.best_path = ant.path
+                if len(ant.path) < len(self.best_path):
+                    #better path found
+                    self.best_path = ant.path
 
             current_node = current_node.children[nextMoveDirection]
 
-        #Path found!
 
+        
 
 
 
@@ -397,9 +404,8 @@ class E160_MP:
             return '[' + str(self.x) + "," + str(self.y) + "," + str(self.index) +  ']'
 
     class Ant:
-        def __init__(self, x, y, heading, probability, path):
-            self.x = x
-            self.y = y
+        def __init__(self, current_node, heading, probability, path):
+            self.current_node = current_node
             self.heading = heading
             self.probability = probability
             self.path = []
