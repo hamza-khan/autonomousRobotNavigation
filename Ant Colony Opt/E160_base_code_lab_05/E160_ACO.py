@@ -114,7 +114,7 @@ class E160_ACO:
 
     def SetKnownStartPos(self, i):
         # add student code here 
-        probability = [0.25, 0.25, 0.25, 0.25]
+        probability = [0, 0, 0, 0]
         path = []
         ant = self.Ant( self.start_node, 0, probability, path)
         self.ants.append(ant)
@@ -124,28 +124,29 @@ class E160_ACO:
     def MoveProbability(self, Ant):
         # gives the probablities of the Ant moving N, E, W, or S
 
-        # Ant.probability = [0, 0, 0, 0]
+        Ant.probability = [0, 0, 0, 0]
         current_node = Ant.current_node
-        total_neighbor_phermones = 0
+        total_neighbor_pheromones = 0
 
-        # total number of phermones in all neighbors
+        # total number of pheromones in all neighbors
         for index in range(len(current_node.neighbors)):
-        	total_neighbor_phermones += current_node.neighbors[index].pheromone
+        	total_neighbor_pheromones += current_node.neighbors[index].pheromone
+        #print current_node.neighbors[0].pheromone
         
-        if total_neighbor_phermones == 0:
-            Ant.probability = [0, 0, 0, 0]
-        else:
-            for index in range(len(current_node.neighbors)):
-                if current_node.neighbors[index].y == current_node.y + 1:
-                    Ant.probability[0] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-                if current_node.neighbors[index].x == current_node.x + 1:
-                    Ant.probability[1] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-                if current_node.neighbors[index].x == current_node.x - 1:
-                    Ant.probability[2] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-                if current_node.neighbors[index].y == current_node.x - 1:
-                    Ant.probability[3] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-        print Ant.probability
-
+        #if total_neighbor_pheromones == 0:
+        #    Ant.probability = [0, 0, 0, 0]
+            #print "setting to zero"  
+        
+        for index in range(len(current_node.neighbors)):
+            if current_node.neighbors[index].y == current_node.y + 1:
+                Ant.probability[0] = (random.random()*0.01)*current_node.neighbors[index].pheromone/total_neighbor_pheromones
+            if current_node.neighbors[index].x == current_node.x + 1:
+                Ant.probability[1] = (random.random()*0.01)*current_node.neighbors[index].pheromone/total_neighbor_pheromones
+            if current_node.neighbors[index].x == current_node.x - 1:
+                Ant.probability[2] = (random.random()*0.01)*current_node.neighbors[index].pheromone/total_neighbor_pheromones
+            if current_node.neighbors[index].y == current_node.x - 1:
+                Ant.probability[3] = (random.random()*0.01)*current_node.neighbors[index].pheromone/total_neighbor_pheromones
+        #print Ant.probability
 
         #adds pheromone probability in [N, E, W, S]
         # for index in range(len(current_node.neighbors)):
@@ -171,37 +172,38 @@ class E160_ACO:
                 
                 #print x,y
         
-        for Node in self.node_list:
+        for node in self.node_list:
            # col, row = self.getCellNumbder(Node)
-            x = Node.x
-            y = Node.y
+            x = node.x
+            y = node.y
+
             colx = math.floor((x+1 - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y - self.min_y)/self.y_grid_cell_size )
-            # print colx,rowy
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy][0])
+                node.neighbors.append(self.cell_grid[colx, rowy][0])
+                print "added 1"
             
             colx = math.floor((x-1 - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y - self.min_y)/self.y_grid_cell_size )
-            
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy][0])
+                node.neighbors.append(self.cell_grid[colx, rowy][0])
+                print "added 2"
             
             colx = math.floor((x - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y+1 - self.min_y)/self.y_grid_cell_size )
-
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy][0])
+                node.neighbors.append(self.cell_grid[colx, rowy][0])
+                print "added 3"
 
             colx = math.floor((x - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y-1 - self.min_y)/self.y_grid_cell_size )
-
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy][0])
+                node.neighbors.append(self.cell_grid[colx, rowy][0])
+                print "added 4"
 
             #  print self.cell_grid[x,y]
             #print x,y
-            # print Node.neighbors
+            print node.neighbors
 
     def AntColonyPathPlanner(self, goal_node):
         
@@ -215,6 +217,7 @@ class E160_ACO:
         path_found = False
         iteration = 0
 
+
         #initialize the path
         current_path = []
 
@@ -222,13 +225,36 @@ class E160_ACO:
 
             #iterate ants until a path is found
             while (path_found == False):
+                #lastMove = 0
                 for ant in self.ants:
                     #update ant motion probability
                     self.MoveProbability(ant)
 
                     #determine best direction
+                    #ant.probability[lastMove] = 0
+                    #print ant.probability
+                    
                     nextMoveDirection = ant.probability.index(max(ant.probability))
-                    # print nextMoveDirection
+                    print ant.probability
+                    print nextMoveDirection
+                    print ant.current_node.neighbors
+
+                    for node in ant.path:
+                        node.pheromone = 0
+                    
+                    # if nextMoveDirection == 0:
+                    #     lastMove = 3
+                    # if nextMoveDirection == 1:
+                    #     lastMove = 2
+                    # if nextMoveDirection == 2:
+                    #     lastMove = 1
+                    # if nextMoveDirection == 3:
+                    #     lastMove = 0
+                    
+                    
+                    #print ant.probability
+
+
                     current_node = ant.current_node
 
                     #add current node to path 
@@ -249,9 +275,12 @@ class E160_ACO:
                         path_found = True
                         print "I am going through Ants"
                             
-                    #Move to next node
+                    #Move to next node if no path
                     ant.current_node = ant.current_node.neighbors[nextMoveDirection]
-                    # print "I am searching for path"
+                    #print "I am searching for path"
+                    #print ant.current_node.x, ant.current_node.y
+           
+            #found complete path
             iteration += 1
             print "I am finding better path"
 
@@ -377,7 +406,7 @@ class E160_ACO:
         def __init__(self, x = 0, y = 0, pheromone = 0, time = 0, neighbors = [], index = 0):
             self.x = x
             self.y = y
-            self.pheromone = 0 
+            self.pheromone = 0.1 
             self.time = 0
             self.neighbors = []
             self.index = index
