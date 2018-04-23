@@ -2,7 +2,7 @@ import math
 import random
 import numpy as np
 
-class E160_MP:
+class E160_ACO:
 
     def __init__(self, environment, start_robot_state, robot_radius):
        # Cell grid and node list
@@ -11,6 +11,7 @@ class E160_MP:
        self.traj_node_list = []
        self.ants = []
        self.best_path = []
+       self.allPaths = []
        self.environment = environment
 
        # Variables
@@ -67,16 +68,16 @@ class E160_MP:
         row = math.floor((n.y - self.min_y)/self.y_grid_cell_size )
         return col, row
 
-    def select_expansion_node(self):
-        '''Randomly select a node to expand on in the grid
-            Return
-                Node '''
-        #select based on this probability
-        cell_length = len(self.cell_grid.keys())
-        random_cell_num = int(random.random() * cell_length)
-        random_key = self.cell_grid.keys()[random_cell_num]
-        random_node_num = int(random.random() * len(self.cell_grid[random_key]))
-        return self.cell_grid[random_key][random_node_num]
+    # def select_expansion_node(self):
+    #     '''Randomly select a node to expand on in the grid
+    #         Return
+    #             Node '''
+    #     #select based on this probability
+    #     cell_length = len(self.cell_grid.keys())
+    #     random_cell_num = int(random.random() * cell_length)
+    #     random_key = self.cell_grid.keys()[random_cell_num]
+    #     random_node_num = int(random.random() * len(self.cell_grid[random_key]))
+    #     return self.cell_grid[random_key][random_node_num]
 
     def angle_wrap(self, a):
         while a > math.pi:
@@ -145,6 +146,7 @@ class E160_MP:
         
 
     def InitializeGrid(self):
+        #TODO: add walls as input
         #Code to get grid and set nodes
         #col = math.floor((n.x - self.min_x)/self.x_grid_cell_size )
         #row = math.floor((n.y - self.min_y)/self.y_grid_cell_size )
@@ -185,7 +187,7 @@ class E160_MP:
 
             #  print self.cell_grid[x,y]
             #print x,y
-            print Node.neighbors
+            # print Node.neighbors
 
     def AntColonyPathPlanner(self, goal_node):
         
@@ -229,10 +231,13 @@ class E160_MP:
                         #set current path
                         current_path = ant.path
                         path_found = True
+                        print "I am going through Ants"
                             
-                #Move to next node
-                ant.current_node = ant.current_node.neighbors[nextMoveDirection]
-                iteration += 1
+                    #Move to next node
+                    ant.current_node = ant.current_node.neighbors[nextMoveDirection]
+                    print "I am searching for path"
+            iteration += 1
+            print "I am finding better path"
 
             #a path is found. evaporate pheromones 
             roe = 0.5
@@ -266,74 +271,11 @@ class E160_MP:
             #     ant.current_node = #node.y - 1
             #current_node = current_node.children[nextMoveDirection]
         
-        print self.best_path
+        # print self.best_path
         # return the best path
         return self.best_path
 
 
-    def MotionPlanner(self, goal_node):
-        '''Come up with a trajectory plan using RRT from the start to
-            the goal node
-            Args:
-                goal_node (Node): node that robot should go to
-            Return:
-                [a list of node_indices] '''
-        # establish criteria for stopping
-        path_found = False
-        iteration = 0
-
-        # trivial case: if start node connect to goal_node
-        if (self.check_collision(self.start_node, goal_node, self.robot_radius) == False):
-            goal_node.parent = self.start_node
-            self.start_node.children.append(goal_node)
-            self.addNode(goal_node)
-            path_found = True
-
-        # while loop to continue add node until one of the criteria
-        # is met
-        
-        while(iteration < self.MAX_NODE_NUMBER and path_found == False):
-            # Add Code: randomly select an expansion node
-            expansion_node = self.select_expansion_node()
-
-            # Add Code: From the expansion node, create a new node
-            randLength = 3*self.robot_radius*random.random()
-            randOrientation = self.angle_wrap(2*math.pi*random.random())
-    
-            #Find orientation and intialize children of new node
-            xNewNode = randLength*math.cos(randOrientation) + expansion_node.x
-            yNewNode = randLength*math.sin(randOrientation) + expansion_node.y
-            #childrenNewNode = []
-
-            #Create new node
-            new_node = self.Node(xNewNode,yNewNode,expansion_node,[],self.num_nodes)
-            
-            # Add Code: check collision for the expansion
-            #if ...
-            if not self.check_collision(new_node.parent, new_node, 2.5*self.robot_radius):
-                self.addNode(new_node)
-                expansion_node.children.append(new_node)
-                   
-            # Add Code: check if stopping criteria is met or not
-                if not self.check_collision(new_node, goal_node, 2.5*self.robot_radius):
-                    goal_node.parent = new_node
-                    new_node.children.append(goal_node)                
-                    self.addNode(goal_node)
-                    expansion_node.children.append(goal_node)
-                    path_found = True       
-            
-            # keep track of the number of attempted expansions
-            iteration += 1
-            
-        # build the trajectory
-        self.traj_node_list = self.build_trajectory(goal_node)
-        
-        # print self.traj_node_list
-        # return the trajectory
-        return self.traj_node_list
-
-
-    
     def build_trajectory(self, goal_node):
         '''Given a goal_node, build a trajectory from start to goal
             Args:

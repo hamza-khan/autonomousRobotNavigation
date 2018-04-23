@@ -131,6 +131,32 @@ class E160_graphics:
                 next_point = self.scale_points([next_node.x, next_node.y], self.scale)
                 self.path.append(self.canvas.create_line(current_point, next_point, fill = "red"))
 
+    def draw_bestAntPath(self):
+        for r in self.environment.robots:
+            best_path = r.ACO.best_path
+            for i in range(len(best_path) - 1):
+                next_node = best_path[i+1]
+                current_node = best_path[i]
+
+                current_point = self.scale_points([current_node.x, current_node.y], self.scale)
+                next_point = self.scale_points([next_node.x, next_node.y], self.scale)
+                self.path.append(self.canvas.create_line(current_point, next_point, fill = "red"))
+
+    def draw_antPaths(self):
+        for r in self.environment.robots:
+            allPaths = []
+            for ant in r.ACO.ants:
+                allPaths.append(ant.path)
+                
+            for path in allPaths:
+                for i in range(len(path) - 1):
+                    next_node = path[i+1]
+                    current_node = path[i]
+
+                    current_point = self.scale_points([current_node.x, current_node.y], self.scale)
+                    next_point = self.scale_points([next_node.x, next_node.y], self.scale)
+                    self.path.append(self.canvas.create_line(current_point, next_point, fill = "grey"))
+    
     def draw_rrt(self):
         if self.drawn_rrt == False:
             for branch in self.RRT:
@@ -149,6 +175,7 @@ class E160_graphics:
             # self.canvas.create_line(head_node.x, head_node.y, )
     # def draw_RRT(self, node, children_index):
     #     if children_index == len()
+
 
     def draw_wall(self, wall):
         
@@ -318,7 +345,9 @@ class E160_graphics:
         
         # draw path
         #self.draw_rrt()
- 
+        self.draw_antPaths()
+        self.draw_bestAntPath()
+
         # update the graphics
         self.tk.update()
 

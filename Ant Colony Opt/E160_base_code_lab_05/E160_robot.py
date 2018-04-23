@@ -1,7 +1,8 @@
 
 from E160_state import *
 from E160_PF import *
-from E160_MP import *
+# from E160_MP import *
+from E160_ACO import *
 import math
 import datetime
 
@@ -63,9 +64,13 @@ class E160_robot:
 
         # Path Planner and Particle Filter
         self.PF = E160_PF(environment, self.width, self.wheel_radius, self.encoder_resolution)
-        self.MP = E160_MP(environment, self.state_odo, self.radius)
-        self.build_path([0], self.MP.node_list)
-        self.replan_path = False
+        # self.MP = E160_MP(environment, self.state_odo, self.radius)
+        self.ACO = E160_ACO(environment, self.state_odo, self.radius)
+        self.best_path = self.ACO.best_path
+        #TODO: build ACO path instead
+        self.ACO_build_path(self.best_path)
+        # self.build_path([0], self.MP.node_list)
+        # self.replan_path = False
         
     def update(self, deltaT):
         # get sensor measurements
@@ -84,9 +89,10 @@ class E160_robot:
         self.state_draw = self.state_odo
 
         # call motion planner
-        self.motion_plan()
-        self.track_trajectory()
+        # self.motion_plan()
+        # self.track_trajectory()
         
+
         # determine new control signals
         self.R, self.L = self.update_control(self.range_measurements)
         
@@ -94,7 +100,8 @@ class E160_robot:
         self.send_control(self.R, self.L, deltaT)
         
         #print(self.state_est.x, self.state_est.y, self.state_est.t)
-        # self.state_est.set_state(0,0,0)
+        # self.state_est.set_state(0,0,0)          
+
     
     def motion_plan(self):
         if (self.replan_path == True):
@@ -382,6 +389,19 @@ class E160_robot:
            
         # keep this to return the updated state
         return state
+
+    def ACO_build_path(self, best_path):
+        self.trajectory = []
+        for node in best_path:
+            current_node = node
+            desired_state = E160_state(current_node.x, current_node.y, 0)
+            self.trajectory.append(desired_state)
+        # for i in range(len(best_path) - 1):
+        #     current_node = best_path[i+1]
+        #     prev_node = best_path[i]
+        #     desired_angle = -self.angle_wrap(math.atan2(current_node.y -prev_node.y, current_node.x - prev_node.x))
+        #     desired_state = E160_state(current_node.x, current_node.y, 0)
+        #     self.trajectory.append(desired_state)
 
     def build_path(self, node_indices, node_list):
         '''Update the trajectory using the node indices return by the path

@@ -4,7 +4,7 @@ import random
 import time
 from E160_environment import *
 from E160_graphics import *
-from E160_MP import *
+# from E160_MP import *
 from E160_state import *
 
 
@@ -15,10 +15,7 @@ def main():
     # instantiate robot navigation classes
     environment = E160_environment()
     graphics = E160_graphics(environment)
-    state_odo = E160_state()
-    radius = 0.147 / 2
-    mp = E160_MP(environment,state_odo, radius)
-    mp.InitializeGrid()
+
 
     #InitializeGrid()
     # set time step size in seconds
