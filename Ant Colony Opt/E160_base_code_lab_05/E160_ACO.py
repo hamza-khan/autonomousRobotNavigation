@@ -33,7 +33,7 @@ class E160_ACO:
        self.expansion_range = 0.4
        self.robot_radius = robot_radius
 
-       start_node = self.Node(start_robot_state.x, start_robot_state.y)
+       start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,[], 0)
        self.start_node = start_node
        self.addNode(self.start_node)
 
@@ -43,12 +43,12 @@ class E160_ACO:
         self.num_nodes = 0
 
         # Add Code: set the variable self.start_node and add it to the PRM
-        children = []
-        self.start_node = self.Node(start_robot_state.x, start_robot_state.y,None,children, 0)
+        neighbors = []
+        self.start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,neighbors, 0)
         self.addNode(self.start_node)
                
         
-        return self.MotionPlanner(goal_node)
+        return self.AntColonyPathPlanner(goal_node)
 
     def addNode(self, n):
         '''Add node n in self.cell_grid'''
@@ -124,25 +124,39 @@ class E160_ACO:
     def MoveProbability(self, Ant):
         # gives the probablities of the Ant moving N, E, W, or S
 
-        Ant.probability = [0, 0, 0, 0]
+        # Ant.probability = [0, 0, 0, 0]
         current_node = Ant.current_node
         total_neighbor_phermones = 0
 
         # total number of phermones in all neighbors
         for index in range(len(current_node.neighbors)):
-        	total_neighbour_phermones += current_node.neighbors[index].pheromone
+        	total_neighbor_phermones += current_node.neighbors[index].pheromone
+        
+        if total_neighbor_phermones == 0:
+            Ant.probability = [0, 0, 0, 0]
+        else:
+            for index in range(len(current_node.neighbors)):
+                if current_node.neighbors[index].y == current_node.y + 1:
+                    Ant.probability[0] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+                if current_node.neighbors[index].x == current_node.x + 1:
+                    Ant.probability[1] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+                if current_node.neighbors[index].x == current_node.x - 1:
+                    Ant.probability[2] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+                if current_node.neighbors[index].y == current_node.x - 1:
+                    Ant.probability[3] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+        print Ant.probability
 
 
         #adds pheromone probability in [N, E, W, S]
-        for index in range(len(current_node.neighbors)):
-            if current_node.neighbors[index].y == current_node.y + 1:
-                Ant.probability[0] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-            if current_node.neighbors[index].x == current_node.x + 1:
-                Ant.probability[1] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-            if current_node.neighbors[index].x == current_node.x - 1:
-                Ant.probability[2] = current_node.neighbors[index].pheromone/total_neighbor_phermones
-            if current_node.neighbors[index].y == current_node.x - 1:
-                Ant.probability[3] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+        # for index in range(len(current_node.neighbors)):
+        #     if current_node.neighbors[index].y == current_node.y + 1:
+        #         Ant.probability[0] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+        #     if current_node.neighbors[index].x == current_node.x + 1:
+        #         Ant.probability[1] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+        #     if current_node.neighbors[index].x == current_node.x - 1:
+        #         Ant.probability[2] = current_node.neighbors[index].pheromone/total_neighbor_phermones
+        #     if current_node.neighbors[index].y == current_node.x - 1:
+        #         Ant.probability[3] = current_node.neighbors[index].pheromone/total_neighbor_phermones
         
 
     def InitializeGrid(self):
@@ -165,25 +179,25 @@ class E160_ACO:
             rowy = math.floor((y - self.min_y)/self.y_grid_cell_size )
             # print colx,rowy
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy])
+                Node.neighbors.append(self.cell_grid[colx, rowy][0])
             
             colx = math.floor((x-1 - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y - self.min_y)/self.y_grid_cell_size )
             
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy])
+                Node.neighbors.append(self.cell_grid[colx, rowy][0])
             
             colx = math.floor((x - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y+1 - self.min_y)/self.y_grid_cell_size )
 
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy])
+                Node.neighbors.append(self.cell_grid[colx, rowy][0])
 
             colx = math.floor((x - self.min_x)/self.x_grid_cell_size )
             rowy = math.floor((y-1 - self.min_y)/self.y_grid_cell_size )
 
             if (colx, rowy) in self.cell_grid:
-                Node.neighbors.append(self.cell_grid[colx, rowy])
+                Node.neighbors.append(self.cell_grid[colx, rowy][0])
 
             #  print self.cell_grid[x,y]
             #print x,y
@@ -214,6 +228,8 @@ class E160_ACO:
 
                     #determine best direction
                     nextMoveDirection = ant.probability.index(max(ant.probability))
+                    # print nextMoveDirection
+                    current_node = ant.current_node
 
                     #add current node to path 
                     ant.path.append(current_node)
@@ -235,7 +251,7 @@ class E160_ACO:
                             
                     #Move to next node
                     ant.current_node = ant.current_node.neighbors[nextMoveDirection]
-                    print "I am searching for path"
+                    # print "I am searching for path"
             iteration += 1
             print "I am finding better path"
 

@@ -70,7 +70,7 @@ class E160_robot:
         #TODO: build ACO path instead
         self.ACO_build_path(self.best_path)
         # self.build_path([0], self.MP.node_list)
-        # self.replan_path = False
+        self.replan_path = False
         
     def update(self, deltaT):
         # get sensor measurements
@@ -89,7 +89,7 @@ class E160_robot:
         self.state_draw = self.state_odo
 
         # call motion planner
-        # self.motion_plan()
+        self.motion_plan()
         # self.track_trajectory()
         
 
@@ -110,11 +110,11 @@ class E160_robot:
             self.state_curr_dest = self.state_est
 
             # Set goal node
-            goal_node = E160_MP.Node(self.state_des.x, self.state_des.y)
+            goal_node = E160_ACO.Node(self.state_des.x, self.state_des.y)
 
             # Generate path with RRT
-            node_indices = self.MP.update_plan(self.state_odo, goal_node)
-            self.build_path(node_indices, self.MP.node_list)
+            node_indices = self.ACO.update_plan(self.state_odo, goal_node)
+            self.ACO_build_path(self.best_path)
             self.replan_path = False
         else:
             pass
