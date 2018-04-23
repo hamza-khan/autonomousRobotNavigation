@@ -200,7 +200,7 @@ class E160_ACO:
             #iterate ants until a path is found
             for ant in self.ants:
                 lastMove = 0
-                # path_found = False
+                path_found = False
                 while (path_found == False):
                     
                     current_node = ant.current_node
