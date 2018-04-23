@@ -292,11 +292,11 @@ class E160_ACO:
            
             #found complete path
             iteration += 1
-            print "I am finding better path"
+            #print "I am finding better path"
 
             #a path is found. evaporate pheromones 
             roe = 0.5
-            for node in node_list:
+            for node in self.node_list:
                 node.pheromone = node.pheromone*(1-roe)
 
             #Add pheromones to path 
@@ -326,8 +326,10 @@ class E160_ACO:
             #     ant.current_node = #node.y - 1
             #current_node = current_node.children[nextMoveDirection]
         
-        # print self.best_path
+        print "sucess!!"
+        print self.best_path
         # return the best path
+
         return self.best_path
 
 
