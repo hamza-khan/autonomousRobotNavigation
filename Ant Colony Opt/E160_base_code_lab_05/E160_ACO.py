@@ -219,6 +219,7 @@ class E160_ACO:
         # establish criteria for stopping
         path_found = False
         iteration = 0
+        numAntsOnPath = 0
 
 
         #initialize the path
@@ -229,6 +230,7 @@ class E160_ACO:
             #iterate ants until a path is found
             for ant in self.ants:
                 lastMove = 0
+                # path_found = False
                 while (path_found == False):
                     
                     current_node = ant.current_node
@@ -245,10 +247,10 @@ class E160_ACO:
                             ant.probability[x] = 0
 
                     nextMoveDirection = ant.probability.index(max(ant.probability))
-                    print ant.probability
-                    print nextMoveDirection
-                    #print current_node
-                    print current_node.neighbors
+                    # print ant.probability
+                    # print nextMoveDirection
+                    # #print current_node
+                    # print current_node.neighbors
 
                     #for node in ant.path:
                     #    node.pheromone = 0
@@ -280,37 +282,32 @@ class E160_ACO:
                         #set current path
                         current_path = ant.path
                         path_found = True
-                        print "I am going through Ants"
+                        print "path found"
                             
                     #Move to next node if no path
                     ant.current_node = ant.current_node.neighbors[nextMoveDirection]
                     
-                    if ant.current_node == None:
-                        print "current node is None"
+                    # if ant.current_node == None:
+                    #     print "current node is None"
                     #print "I am searching for path"
                     #print ant.current_node.x, ant.current_node.y
            
             #found complete path
-            iteration += 1
             #print "I am finding better path"
 
-            #a path is found. evaporate pheromones 
-            roe = 0.5
-            for node in self.node_list:
-                node.pheromone = node.pheromone*(1-roe)
+                #a path is found. evaporate pheromones 
+                roe = 0.5
+                for node in self.node_list:
+                    node.pheromone = node.pheromone*(1-roe)
 
-            #Add pheromones to path 
-            numAntsOnPath = 0
-            for ant in self.ants:
-                if ant.path == current_path:
-                    numAntsOnPath += 1
+                #Add pheromones to path 
 
-            ck = len(current_path)
-            for node in current_path:
-                node.pheromone += numAntsOnPath*(1/ck)
+                ck = len(current_path)
+                for node in current_path:
+                    node.pheromone += (1/ck)
 
-        #iterate paths
-        iteration += 1
+            #iterate paths
+            iteration += 1
 
 
             # if nextMoveDirection == 1:
@@ -326,8 +323,8 @@ class E160_ACO:
             #     ant.current_node = #node.y - 1
             #current_node = current_node.children[nextMoveDirection]
         
-        print "sucess!!"
-        print self.best_path
+            print "sucess!!"
+            print self.best_path
         # return the best path
 
         return self.best_path
