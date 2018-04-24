@@ -65,12 +65,15 @@ class E160_environment:
         self.xbee.halt()
         self.serial.close()
 
+
+        #  add function getCell to grid
     class grid:
     	"""docstring for ClassName"""
     	def __init__(self, environment, cell_edge_length, robot_radius):
     		self.environment = environment
     		self.cell_edge_length = cell_edge_length
     		self.robot_radius = robot_radius
+    		self.discritizedMap = []
 
 		# TODO: fix __str__
 		def __str__(self):
@@ -92,11 +95,18 @@ class E160_environment:
 
     	def discritizeMap(self):
     		# 
-    		self.discritizedMap = []
+    		
     		for row in numRows:
     			for col in numCols:
-    				self.discritizdeMap.append(self.cell(row, col, self, 0.1, False, False))
+    				self.discritizedMap.append(self.cell(row, col, self, 0.1, False, False))
 			pass
+		
+		def getCell(self, row, col):
+    		for cell in self.discritizedMap:
+    			if cell.row == row:
+    				if cell.col == col:
+    					return cell
+
 
 		def updateOccupancy(self):
 			walls = self.environment.walls
