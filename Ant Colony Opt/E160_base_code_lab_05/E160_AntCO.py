@@ -1,30 +1,24 @@
 import math
 import random
 import numpy as np
+from E160_state import *
 
 class E160_AntCO:
 
     def __init__(self, environment, start_robot_state, robot_radius):
-       # Cell grid and node list
-       # self.cell_grid = {}
-       # self.node_list = []
-       # self.traj_node_list = []
+
        self.ants = []
        self.best_path = []
        self.allPaths = []
        self.environment = environment
+       # self.state = E160_state()
        self.cell_edge_length = 0.1
        self.robot_radius = robot_radius
        self.grid = environment.grid(self.environment, self.cell_edge_length, self.robot_radius)
 
        # Variables
-       # self.num_nodes = 0
+
        self.num_ants = 10
-       # self.max_x = 2.0
-       # self.max_y = 2.0
-       # self.min_x = -2.0
-       # self.min_y = -2.0
-       # self.grid_size = 10
        self.max_iteration = 10
 
        # Constants
@@ -35,10 +29,7 @@ class E160_AntCO:
        # self.MAX_NODE_NUMBER = 100000
        # self.expansion_range = 0.4
 
-       # start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,[], 0)
-       # self.start_node = start_node
-       # self.addNode(self.start_node)
-
+    # TODO: Update
     def update_plan(self, start_robot_state, goal_node):
         self.cell_grid = {}
         self.node_list = []
@@ -52,24 +43,6 @@ class E160_AntCO:
                
         
         return self.AntColonyPathPlanner(goal_node)
-
-    def addNode(self, n):
-        '''Add node n in self.cell_grid'''
-        # print self.cell_grid.keys()
-        col, row = self.getCellNumbder(n)
-        if (col, row) in self.cell_grid:
-            self.cell_grid[col, row].append(n)
-        else:
-            self.cell_grid[col, row] = [n]
-        n.index = self.num_nodes
-        self.node_list.append(n)
-        self.num_nodes += 1 
-
-    def getCellNumbder(self, n):
-        '''Calculate x and y indices for a given node '''
-        col = math.floor((n.x - self.min_x)/self.x_grid_cell_size )
-        row = math.floor((n.y - self.min_y)/self.y_grid_cell_size )
-        return col, row
 
     def angle_wrap(self, a):
         while a > math.pi:
@@ -108,11 +81,19 @@ class E160_AntCO:
         # add student code here 
         probability = [0, 0, 0, 0]
         path = []
-        ant = self.Ant( self.start_node, 0, probability, path)
+        current_state = E160_state()
+        current_state.set_state(0,0,0)
+        desired_state = E160_state()
+        desired_state.set_state(0,0,0)
+        ant = self.Ant(current_state, desired_state, probability, path)
         self.ants.append(ant)
         # end student code here
         pass
 
+    # TODO: Update, as discussed in class today we do have hurstic information whiich we want to introduce
+    # the hurestic information can be the distance betweeen goal cell and cells under consideration
+    # where cells under consideration are the neigbouring cells
+    # therefore of the neigbours, the cell closest to goal will have higher probability
     def MoveProbability(self, ant):
         # gives the probablities of the Ant moving N, E, W, or S
 
@@ -153,12 +134,9 @@ class E160_AntCO:
     #trajectory needs orientations
     #do some atan2
 
-
+    # TODO: Update
     def AntColonyPathPlanner(self, goal_coordinates):
         
-        # Discritize map 
-        self.InitializeGrid()
-
         # Start ants at nest 
         self.InitializeAnts()
 
@@ -327,22 +305,11 @@ class E160_AntCO:
             return True
         return False
 
-    class Node:
-        def __init__(self, x = 0, y = 0, heading = 0):
-            self.x = x
-            self.y = y
-            self.heading = heading
-
-        def __str__(self):
-            return str(self.x) + " " + str(self.y)+ " " + str(self.heading)
-        
-        def __repr__(self):
-            return '[' + str(self.x) + "," + str(self.y) + "," + str(self.heading) +  ']'
-
+    # Ant class will take argument current state desired state
     class Ant:
-        def __init__(self, current_cell, heading, probability, path):
-            self.current_cell = current_cell
-            self.heading = heading
+        def __init__(self, current_state, desired_state, probability, path):
+            self.current_state = current_state
+            self.desired_state = desired_state
             self.probability = probability
             self.path = []
 

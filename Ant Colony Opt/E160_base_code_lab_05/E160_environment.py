@@ -95,7 +95,8 @@ class E160_environment:
     		self.discritizedMap = []
     		for row in numRows:
     			for col in numCols:
-    				self.discritizdeMap.append(self.cell(row, col, self, 0.1, False))
+    				self.discritizdeMap.append(self.cell(row, col, self, 0.1, False, False))
+			pass
 
 		def updateOccupancy(self):
 			walls = self.environment.walls
@@ -107,6 +108,7 @@ class E160_environment:
 					if x > xa and x < xb:
 						if y > yb and y < ya: 
 							cell.occupied = True
+			pass
 
 
 		def bufferWallCoordinates(self, wall):
@@ -136,11 +138,12 @@ class E160_environment:
 
 	class cell:
 		"""docstring for ClassName"""
-		def __init__(self, row, col, grid, pheromone = 0.1, occupied = False):
+		def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, isGoal = False):
 			self.row = row
 			self.col = col
 			self.pheromone = pheromone
 			self.occupied = occupied
+			self.isGoal = isGoal
     		self.cell_edge_length = grid.cell_edge_length
     		self.width = grid.environment.width
     		self.height = grid.environment.height
@@ -150,8 +153,9 @@ class E160_environment:
     		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
 
     		return [x,y]
-    		
-		def returnRowCol(self, x, y)
 
-    			
-            
+		def returnRowCol(self, x, y):
+			row = (((2*y)+self.height)/self.cell_edge_length) - 1
+			col = (((2*x)+self.width)/self.cell_edge_length) - 1
+
+			return [row, col]
