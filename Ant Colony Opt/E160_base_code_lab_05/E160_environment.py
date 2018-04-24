@@ -67,11 +67,12 @@ class E160_environment:
 
     class grid:
     	"""docstring for ClassName"""
-    	def __init__(self, environment, cell_edge_length, robot_diamter):
+    	def __init__(self, environment, cell_edge_length, robot_radius):
     		self.environment = environment
     		self.cell_edge_length = cell_edge_length
-    		self.robot_diamter = robot_diamter
+    		self.robot_radius = robot_radius
 
+		# TODO: fix __str__
 		def __str__(self):
             return str(self.x) + " " + str(self.y)
 
@@ -79,13 +80,10 @@ class E160_environment:
         	numCells = self.numberOfCols()*self.numberOfRows()
         	return numCells
 
-
     	def numberOfCols(self):
         	mapWidth = self.environment.width
         	numCols = mapWidth/self.cell_edge_length
         	return numCols
-        
-
 
 		def numberOfRows(self):
         	mapHeight = self.environment.height
@@ -98,6 +96,42 @@ class E160_environment:
     		for row in numRows:
     			for col in numCols:
     				self.discritizdeMap.append(self.cell(row, col, self, 0.1, False))
+
+		def updateOccupancy(self):
+			walls = self.environment.walls
+
+			for wall in walls:
+				[xa, xb, ya, yb] = self.bufferWallCoordinates(wall)
+				for cell in self:
+					[x,y] = cell.returnXY()
+					if x > xa and x < xb:
+						if y > yb and y < ya: 
+							cell.occupied = True
+
+
+		def bufferWallCoordinates(self, wall):
+			robotRadius = self.robot_radius
+			if wall.slope == "vertical":
+	            x1 = wall.points[0] + wall.radius
+	            y1 = wall.points[1] - wall.radius
+	            x2 = wall.points[4] - wall.radius
+	            y2 = wall.points[5] + wall.radius
+	            xa = x1 - (2.5*robotRadius)
+	            xb = x1 + (2.5*robotRadius)
+	            ya = y1 + (2.5*robotRadius)
+	            yb = y2 - (2.5*robotRadius)
+        # horizontal wall
+	        else:
+	            x1 = wall.points[0] + wall.radius
+	            y1 = wall.points[1] + wall.radius
+	            x2 = wall.points[4] - wall.radius
+	            y2 = wall.points[5] - wall.radius
+	            xa = x1 - (2.5*robotRadius)
+	            xb = x2 + (2.5*robotRadius)
+	            ya = y1 + (2.5*robotRadius)
+	            yb = y1 - (2.5*robotRadius)
+            return [xa, xb, ya, yb]
+
 
 
 	class cell:
@@ -114,6 +148,10 @@ class E160_environment:
     	def returnXY(self):
     		x = ((self.col + 1)*self.cell_edge_length/2) - self.width/2
     		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
+
+    		return [x,y]
+    		
+		def returnRowCol(self, x, y)
 
     			
             

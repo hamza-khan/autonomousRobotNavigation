@@ -2,40 +2,42 @@ import math
 import random
 import numpy as np
 
-class E160_ACO:
+class E160_AntCO:
 
     def __init__(self, environment, start_robot_state, robot_radius):
        # Cell grid and node list
-       self.cell_grid = {}
-       self.node_list = []
-       self.traj_node_list = []
+       # self.cell_grid = {}
+       # self.node_list = []
+       # self.traj_node_list = []
        self.ants = []
        self.best_path = []
        self.allPaths = []
        self.environment = environment
+       self.cell_edge_length = 0.1
+       self.robot_radius = robot_radius
+       self.grid = environment.grid(self.environment, self.cell_edge_length, self.robot_radius)
 
        # Variables
-       self.num_nodes = 0
+       # self.num_nodes = 0
        self.num_ants = 10
-       self.max_x = 2.0
-       self.max_y = 2.0
-       self.min_x = -2.0
-       self.min_y = -2.0
-       self.grid_size = 10
+       # self.max_x = 2.0
+       # self.max_y = 2.0
+       # self.min_x = -2.0
+       # self.min_y = -2.0
+       # self.grid_size = 10
        self.max_iteration = 10
 
        # Constants
-       self.num_y_cell = 10
-       self.num_x_cell = 10
-       self.x_grid_cell_size = self.max_x/self.grid_size
-       self.y_grid_cell_size = self.max_x/self.grid_size
-       self.MAX_NODE_NUMBER = 100000
-       self.expansion_range = 0.4
-       self.robot_radius = robot_radius
+       # self.num_y_cell = 10
+       # self.num_x_cell = 10
+       # self.x_grid_cell_size = self.max_x/self.grid_size
+       # self.y_grid_cell_size = self.max_x/self.grid_size
+       # self.MAX_NODE_NUMBER = 100000
+       # self.expansion_range = 0.4
 
-       start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,[], 0)
-       self.start_node = start_node
-       self.addNode(self.start_node)
+       # start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,[], 0)
+       # self.start_node = start_node
+       # self.addNode(self.start_node)
 
     def update_plan(self, start_robot_state, goal_node):
         self.cell_grid = {}
@@ -151,56 +153,13 @@ class E160_ACO:
     #trajectory needs orientations
     #do some atan2
 
-    def InitializeGrid(self):
-        #TODO: add walls as input
-        #Code to get grid and set nodes
-       
-        for x in range(self.grid_size):
-            for y in range(self.grid_size):     
-                newNode = self.Node(x, y, 0.1, 0, [])
-                self.addNode(newNode)
-                
-                #print x,y
+
+    def AntColonyPathPlanner(self, goal_coordinates):
         
-        for node in self.node_list:
-           # col, row = self.getCellNumbder(Node)
-            x = node.x
-            y = node.y
-
-            colx = math.floor((x+1 - self.min_x)/self.x_grid_cell_size )
-            rowy = math.floor((y - self.min_y)/self.y_grid_cell_size )
-            if (colx, rowy) in self.cell_grid:
-                node.neighbors[1] = (self.cell_grid[colx, rowy][0])
-                print "added 1"
-            
-            colx = math.floor((x-1 - self.min_x)/self.x_grid_cell_size )
-            rowy = math.floor((y - self.min_y)/self.y_grid_cell_size )
-            if (colx, rowy) in self.cell_grid:
-                node.neighbors[2] = (self.cell_grid[colx, rowy][0])
-                print "added 2"
-            
-            colx = math.floor((x - self.min_x)/self.x_grid_cell_size )
-            rowy = math.floor((y+1 - self.min_y)/self.y_grid_cell_size )
-            if (colx, rowy) in self.cell_grid:
-                node.neighbors[0] = (self.cell_grid[colx, rowy][0])
-                print "added 3"
-
-            colx = math.floor((x - self.min_x)/self.x_grid_cell_size )
-            rowy = math.floor((y-1 - self.min_y)/self.y_grid_cell_size )
-            if (colx, rowy) in self.cell_grid:
-                node.neighbors[3] = (self.cell_grid[colx, rowy][0])
-                print "added 4"
-
-            #  print self.cell_grid[x,y]
-            #print x,y
-            print node.neighbors
-
-    def AntColonyPathPlanner(self, goal_node):
-        
-        #Discritize map 
+        # Discritize map 
         self.InitializeGrid()
 
-        #Start ants at nest 
+        # Start ants at nest 
         self.InitializeAnts()
 
         # establish criteria for stopping
@@ -369,23 +328,20 @@ class E160_ACO:
         return False
 
     class Node:
-        def __init__(self, x = 0, y = 0, pheromone = 0.1, time = 0, neighbors = [None, None, None, None], index = 0):
+        def __init__(self, x = 0, y = 0, heading = 0):
             self.x = x
             self.y = y
-            self.pheromone = pheromone 
-            self.time = time
-            self.neighbors = [None, None, None, None]
-            self.index = index
+            self.heading = heading
 
         def __str__(self):
-            return str(self.x) + " " + str(self.y)
+            return str(self.x) + " " + str(self.y)+ " " + str(self.heading)
         
         def __repr__(self):
-            return '[' + str(self.x) + "," + str(self.y) + "," + str(self.index) +  ']'
+            return '[' + str(self.x) + "," + str(self.y) + "," + str(self.heading) +  ']'
 
     class Ant:
-        def __init__(self, current_node, heading, probability, path):
-            self.current_node = current_node
+        def __init__(self, current_cell, heading, probability, path):
+            self.current_cell = current_cell
             self.heading = heading
             self.probability = probability
             self.path = []
