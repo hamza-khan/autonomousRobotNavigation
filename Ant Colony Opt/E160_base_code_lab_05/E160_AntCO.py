@@ -29,20 +29,24 @@ class E160_AntCO:
        # self.MAX_NODE_NUMBER = 100000
        # self.expansion_range = 0.4
 
-    # TODO: Update
-    def update_plan(self, start_robot_state, goal_node):
-        self.cell_grid = {}
-        self.node_list = []
-        self.num_nodes = 0
+    def initializeGrid(self, environment, cell_edge_length, robot_radius):
+        self.grid.discritizeMap()
+        self.grid.updateOccupany()
 
-        # Add Code: set the variable self.start_node and add it to the PRM
-        neighbors = []
-        self.start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,neighbors, 0)
-        self.start_node = self.Node(0, 0, 0.1, 0, neighbors, 0)
-        self.addNode(self.start_node)
+    # TODO: Update
+    # def update_plan(self, start_robot_state, goal_node):
+    #     self.cell_grid = {}
+    #     self.node_list = []
+    #     self.num_nodes = 0
+
+    #     # Add Code: set the variable self.start_node and add it to the PRM
+    #     neighbors = []
+    #     self.start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,neighbors, 0)
+    #     self.start_node = self.Node(0, 0, 0.1, 0, neighbors, 0)
+    #     self.addNode(self.start_node)
                
         
-        return self.AntColonyPathPlanner(goal_node)
+    #     return self.AntColonyPathPlanner(goal_node)
 
     def angle_wrap(self, a):
         while a > math.pi:

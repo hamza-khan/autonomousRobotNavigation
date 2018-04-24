@@ -94,19 +94,21 @@ class E160_environment:
         	return numRows
 
     	def discritizeMap(self):
-    		# 
-    		
-    		for row in numRows:
-    			for col in numCols:
-    				self.discritizedMap.append(self.cell(row, col, self, 0.1, False, False))
+    		##access by calling discritizeMap[row][col]
+            for row in numRows:
+                column = []
+    		    for col in numCols:
+                    column.append(self.cell(row, col, self, 0.1, False, False)) 
+    			self.discritizedMap.append(column)
 			pass
 		
 		def getCell(self, row, col):
-    		for cell in self.discritizedMap:
-    			if cell.row == row:
-    				if cell.col == col:
-    					return cell
-
+            cell = self.discritizedMap[row][col]
+            return cell
+    		# for cell in self.discritizedMap:
+    		# 	if cell.row == row:
+    		# 		if cell.col == col:
+    		# 			return cell
 
 		def updateOccupancy(self):
 			walls = self.environment.walls
@@ -163,7 +165,21 @@ class E160_environment:
     		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
 
     		return [x,y]
+        
+        #returns [[x,y][xa,xb,ya,yb]] or [[center][corners]]
+        def returnCellDim(self):
+            x = ((self.col + 1)*self.cell_edge_length/2) - self.width/2
+    		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
 
+            xa = x - (self.width/2)
+            xb = x + (self.width/2)
+            ya = y - (self.cell_edge_length/2)
+            yb = y + (self.cell_edge_length/2)
+
+            return [[x,y][xa,xb,ya,yb]]
+        
+
+        #TODO: wrong
 		def returnRowCol(self, x, y):
 			row = (((2*y)+self.height)/self.cell_edge_length) - 1
 			col = (((2*x)+self.width)/self.cell_edge_length) - 1
