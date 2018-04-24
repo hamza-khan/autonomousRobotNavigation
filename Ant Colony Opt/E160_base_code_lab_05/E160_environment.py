@@ -64,6 +64,56 @@ class E160_environment:
     def quit(self):
         self.xbee.halt()
         self.serial.close()
-            
-            
+
+    class grid:
+    	"""docstring for ClassName"""
+    	def __init__(self, environment, cell_edge_length, robot_diamter):
+    		self.environment = environment
+    		self.cell_edge_length = cell_edge_length
+    		self.robot_diamter = robot_diamter
+
+		def __str__(self):
+            return str(self.x) + " " + str(self.y)
+
+        def numberOfCells(self):
+        	numCells = self.numberOfCols()*self.numberOfRows()
+        	return numCells
+
+
+    	def numberOfCols(self):
+        	mapWidth = self.environment.width
+        	numCols = mapWidth/self.cell_edge_length
+        	return numCols
+        
+
+
+		def numberOfRows(self):
+        	mapHeight = self.environment.height
+        	numRows = mapHeight/self.cell_edge_length
+        	return numRows
+
+    	def discritizeMap(self):
+    		# 
+    		self.discritizedMap = []
+    		for row in numRows:
+    			for col in numCols:
+    				self.discritizdeMap.append(self.cell(row, col, self, 0.1, False))
+
+
+	class cell:
+		"""docstring for ClassName"""
+		def __init__(self, row, col, grid, pheromone = 0.1, occupied = False):
+			self.row = row
+			self.col = col
+			self.pheromone = pheromone
+			self.occupied = occupied
+    		self.cell_edge_length = grid.cell_edge_length
+    		self.width = grid.environment.width
+    		self.height = grid.environment.height
+
+    	def returnXY(self):
+    		x = ((self.col + 1)*self.cell_edge_length/2) - self.width/2
+    		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
+
+    			
             
