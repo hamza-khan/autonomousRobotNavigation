@@ -177,11 +177,14 @@ class E160_environment:
             yb = y + (self.cell_edge_length/2)
 
             return [[x,y][xa,xb,ya,yb]]
-        
 
         #TODO: wrong
+        #inputs any x and y and gets cell using returnCellDim as bounds
 		def returnRowCol(self, x, y):
 			row = (((2*y)+self.height)/self.cell_edge_length) - 1
 			col = (((2*x)+self.width)/self.cell_edge_length) - 1
+
+            row = math.floor(row)
+            col = math.floor(col)
 
 			return [row, col]
