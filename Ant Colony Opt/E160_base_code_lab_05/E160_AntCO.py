@@ -98,8 +98,9 @@ class E160_AntCO:
         # gives the probablities of the Ant moving N, E, W, or S
 
         ant.probability = [0, 0, 0, 0]
-        current_node = ant.current_node
+        current_state = ant.current_state
         total_neighbor_pheromones = 0
+        
 
         # total number of pheromones in all neighbors
         for index in range(len(current_node.neighbors)):
