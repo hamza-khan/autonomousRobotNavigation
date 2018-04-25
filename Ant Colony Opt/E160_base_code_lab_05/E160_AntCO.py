@@ -98,30 +98,29 @@ class E160_AntCO:
     # the hurestic information can be the distance betweeen goal cell and cells under consideration
     # where cells under consideration are the neigbouring cells
     # therefore of the neigbours, the cell closest to goal will have higher probability
-    def MoveProbability(self, ant):
+   def MoveProbability(self, ant, goal_state):
         # gives the probablities of the Ant moving N, E, W, or S
 
         ant.probability = [0, 0, 0, 0]
         current_state = ant.current_state
         total_neighbor_pheromones = 0
         
+        current_x = ant.current_state.x
+        current_y = ant.current_state.y
+        current_heading = ant.current_state.heading
 
-        # total number of pheromones in all neighbors
-        for index in range(len(current_node.neighbors)):
-            if current_node.neighbors[index] != None:
-        	    total_neighbor_pheromones += current_node.neighbors[index].pheromone
-        
-        for index in range(len(current_node.neighbors)):
-            if current_node.neighbors[index] != None:
-                if current_node.neighbors[index].y == current_node.y + 1:
-                    ant.probability[0] = current_node.neighbors[index].pheromone/total_neighbor_pheromones
-                if current_node.neighbors[index].x == current_node.x + 1:
-                    ant.probability[1] = current_node.neighbors[index].pheromone/total_neighbor_pheromones
-                if current_node.neighbors[index].x == current_node.x - 1:
-                    ant.probability[2] = current_node.neighbors[index].pheromone/total_neighbor_pheromones
-                if current_node.neighbors[index].y == current_node.x - 1:
-                    ant.probability[3] = current_node.neighbors[index].pheromone/total_neighbor_pheromones
-    
+        goal_x = goal_state.x
+        goal_y = goal_state.y
+        goal_heading =  goal_state.heading
+
+        [current_row current_col] = self.grid.returnRowCol(current_row, current_col)
+        [goal_row goal_col] = self.grid.returnRowCol(goal_x, goal_y)
+
+        current_cell =  grid.getCell(current_row, current_col)
+        goal_cell = grid.getCell(current_row, current_col)
+
+        neighbors = []
+        neighbors.append(grid.getCell(current_row-1, current_col-1))
 
     #sub class grid
     #write get x, y cell/ grid cell

@@ -102,13 +102,15 @@ class E160_environment:
                 self.discritizedMap.append(column)
             pass
 		
-        def getCell(self, row, col):
-            cell = self.discritizedMap[row][col]
-            return cell
-            # for cell in self.discritizedMap:
-            # 	if cell.row == row:
-            # 		if cell.col == col:
-            # 			return cell
+		def getCell(self, row, col):
+			if row >= self.numberOfRows() or col>= self.numberOfCols():
+				c = environment.cell(row, col, self, 0, True)
+			elif row < 0 or col < 0:
+				c = environment.cell(row, col, self, 0, True)
+			else:
+				c = self.discritizedMap[row][col]
+		    return c
+
 
         def updateOccupancy(self):
             walls = self.environment.walls
@@ -146,6 +148,16 @@ class E160_environment:
                 yb = y1 - (2.5*robotRadius)
             return [xa, xb, ya, yb]
 
+	    def returnRowCol(self, x, y):
+	    	for row in numRows:
+	    		for col in numCols:
+	    			c = self.getCell(row,col)
+	    			[[x,y][xa,xb,ya,yb]] = c.returnCellDim()
+	    			if y > ya and y < yb:
+	    				if x > xa and x < xb:
+	    					return [row col]
+	    	pass
+
 
 
     class cell:
@@ -178,13 +190,13 @@ class E160_environment:
 
             return [[x,y][xa,xb,ya,yb]]
 
-        #TODO: wrong
-        #inputs any x and y and gets cell using returnCellDim as bounds
-        def returnRowCol(self, x, y):
-            row = (((2*y)+self.height)/self.cell_edge_length) - 1
-            col = (((2*x)+self.width)/self.cell_edge_length) - 1
+        # #TODO: wrong
+        # #inputs any x and y and gets cell using returnCellDim as bounds
+        # def returnRowCol(self, x, y):
+        #     row = (((2*y)+self.height)/self.cell_edge_length) - 1
+        #     col = (((2*x)+self.width)/self.cell_edge_length) - 1
 
-            row = math.ceiling(row)
-            col = math.ceiling(col)
+        #     row = math.ceiling(row)
+        #     col = math.ceiling(col)
 
-            return [row, col]
+        #     return [row, col]
