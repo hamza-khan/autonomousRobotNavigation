@@ -76,100 +76,100 @@ class E160_environment:
     		self.discritizedMap = []
 
 		# TODO: fix __str__
-		def __str__(self):
-            return str(self.x) + " " + str(self.y)
+		# def __str__(self):
+        #     return str(self.cell_edge_length) + " " + str(self.robot_radius)
 
         def numberOfCells(self):
         	numCells = self.numberOfCols()*self.numberOfRows()
         	return numCells
+            
+        def numberOfCols(self):
+            mapWidth = self.environment.width
+            numCols = mapWidth/self.cell_edge_length
+            return numCols
 
-    	def numberOfCols(self):
-        	mapWidth = self.environment.width
-        	numCols = mapWidth/self.cell_edge_length
-        	return numCols
-
-		def numberOfRows(self):
-        	mapHeight = self.environment.height
-        	numRows = mapHeight/self.cell_edge_length
-        	return numRows
+        def numberOfRows(self):
+            mapHeight = self.environment.height
+            numRows = mapHeight/self.cell_edge_length
+            return numRows
 
     	def discritizeMap(self):
     		##access by calling discritizeMap[row][col]
             for row in numRows:
                 column = []
-    		    for col in numCols:
+                for col in numCols:
                     column.append(self.cell(row, col, self, 0.1, False, False)) 
-    			self.discritizedMap.append(column)
-			pass
+                self.discritizedMap.append(column)
+            pass
 		
-		def getCell(self, row, col):
+        def getCell(self, row, col):
             cell = self.discritizedMap[row][col]
             return cell
-    		# for cell in self.discritizedMap:
-    		# 	if cell.row == row:
-    		# 		if cell.col == col:
-    		# 			return cell
+            # for cell in self.discritizedMap:
+            # 	if cell.row == row:
+            # 		if cell.col == col:
+            # 			return cell
 
-		def updateOccupancy(self):
-			walls = self.environment.walls
+        def updateOccupancy(self):
+            walls = self.environment.walls
 
-			for wall in walls:
-				[xa, xb, ya, yb] = self.bufferWallCoordinates(wall)
-				for cell in self:
-					[x,y] = cell.returnXY()
-					if x > xa and x < xb:
-						if y > yb and y < ya: 
-							cell.occupied = True
-			pass
+            for wall in walls:
+                [xa, xb, ya, yb] = self.bufferWallCoordinates(wall)
+                for cell in self:
+                    [x,y] = cell.returnXY()
+                    if x > xa and x < xb:
+                        if y > yb and y < ya: 
+                            cell.occupied = True
+            pass
 
 
-		def bufferWallCoordinates(self, wall):
-			robotRadius = self.robot_radius
-			if wall.slope == "vertical":
-	            x1 = wall.points[0] + wall.radius
-	            y1 = wall.points[1] - wall.radius
-	            x2 = wall.points[4] - wall.radius
-	            y2 = wall.points[5] + wall.radius
-	            xa = x1 - (2.5*robotRadius)
-	            xb = x1 + (2.5*robotRadius)
-	            ya = y1 + (2.5*robotRadius)
-	            yb = y2 - (2.5*robotRadius)
+        def bufferWallCoordinates(self, wall):
+            robotRadius = self.robot_radius
+            if wall.slope == "vertical":
+                x1 = wall.points[0] + wall.radius
+                y1 = wall.points[1] - wall.radius
+                x2 = wall.points[4] - wall.radius
+                y2 = wall.points[5] + wall.radius
+                xa = x1 - (2.5*robotRadius)
+                xb = x1 + (2.5*robotRadius)
+                ya = y1 + (2.5*robotRadius)
+                yb = y2 - (2.5*robotRadius)
         # horizontal wall
-	        else:
-	            x1 = wall.points[0] + wall.radius
-	            y1 = wall.points[1] + wall.radius
-	            x2 = wall.points[4] - wall.radius
-	            y2 = wall.points[5] - wall.radius
-	            xa = x1 - (2.5*robotRadius)
-	            xb = x2 + (2.5*robotRadius)
-	            ya = y1 + (2.5*robotRadius)
-	            yb = y1 - (2.5*robotRadius)
+            else:
+                x1 = wall.points[0] + wall.radius
+                y1 = wall.points[1] + wall.radius
+                x2 = wall.points[4] - wall.radius
+                y2 = wall.points[5] - wall.radius
+                xa = x1 - (2.5*robotRadius)
+                xb = x2 + (2.5*robotRadius)
+                ya = y1 + (2.5*robotRadius)
+                yb = y1 - (2.5*robotRadius)
             return [xa, xb, ya, yb]
 
 
 
-	class cell:
-		"""docstring for ClassName"""
-		def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, isGoal = False):
-			self.row = row
-			self.col = col
-			self.pheromone = pheromone
-			self.occupied = occupied
-			self.isGoal = isGoal
-    		self.cell_edge_length = grid.cell_edge_length
-    		self.width = grid.environment.width
-    		self.height = grid.environment.height
+    class cell:
+        """docstring for ClassName"""
+        def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, isGoal = False):
+            self.row = row
+            self.col = col
+            self.pheromone = pheromone
+            self.occupied = occupied
+            self.isGoal = isGoal
+            self.cell_edge_length = grid.cell_edge_length
+            self.width = grid.environment.width
+            self.height = grid.environment.height
 
-    	def returnXY(self):
-    		x = ((self.col + 1)*self.cell_edge_length/2) - self.width/2
-    		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
+        def returnXY(self):
+            x = ((self.col + 1)*self.cell_edge_length/2) - self.width/2
+            y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
 
-    		return [x,y]
-        
+            return [x,y]
+
         #returns [[x,y][xa,xb,ya,yb]] or [[center][corners]]
         def returnCellDim(self):
             x = ((self.col + 1)*self.cell_edge_length/2) - self.width/2
-    		y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
+            y = ((self.row + 1)*self.cell_edge_length/2) - self.height/2
 
             xa = x - (self.width/2)
             xb = x + (self.width/2)
@@ -180,11 +180,11 @@ class E160_environment:
 
         #TODO: wrong
         #inputs any x and y and gets cell using returnCellDim as bounds
-		def returnRowCol(self, x, y):
-			row = (((2*y)+self.height)/self.cell_edge_length) - 1
-			col = (((2*x)+self.width)/self.cell_edge_length) - 1
+        def returnRowCol(self, x, y):
+            row = (((2*y)+self.height)/self.cell_edge_length) - 1
+            col = (((2*x)+self.width)/self.cell_edge_length) - 1
 
-            row = math.floor(row)
-            col = math.floor(col)
+            row = math.ceiling(row)
+            col = math.ceiling(col)
 
-			return [row, col]
+            return [row, col]

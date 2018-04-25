@@ -137,60 +137,46 @@ class E160_AntCO:
     #every node have two nodes in trajectory
     #set orientations for nodes
     #trajectory needs orientations
-    #do some atan2
+    #do some atan
 
     # TODO: Update
-    def AntColonyPathPlanner(self, goal_coordinates):
-        
+    def AntColonyPathPlanner(self, goal_state):
         # Start ants at nest 
         self.InitializeAnts()
 
         # establish criteria for stopping
         path_found = False
         iteration = 0
-        numAntsOnPath = 0
-
 
         #initialize the path
         current_path = []
-
         while(iteration <= self.max_iteration):
-
             #iterate ants until a path is found
             for ant in self.ants:
                 lastMove = 0
                 path_found = False
                 while (path_found == False):
-                    
-                    current_node = ant.current_node
+                    #Find current cell
+                    current_state = ant.current_state
+                    [row, col] = self.environment.cell.returnRowCol(x,y)
+                    current_cell = self.grid.getCell(row,col)
 
                     #update ant motion probability
                     self.MoveProbability(ant)
 
                     #determine best direction
-
                     ant.probability[lastMove] = 0
-                    for x in range(4):
-                        if current_node.neighbors[x] == None:
-                            ant.probability[x] = 0
-
                     nextMoveDirection = ant.probability.index(max(ant.probability))
-                   
+                    
+                    #set up next state and save lastMove
+                    [new_x,new_y] = self.setNewState(current_state, nextMoveDirection)
+                    lastMove = self.setLastMove(current_state, nextMoveDirection)
 
-                    if nextMoveDirection == 0:
-                        lastMove = 3
-                    if nextMoveDirection == 1:
-                        lastMove = 2
-                    if nextMoveDirection == 2:
-                        lastMove = 1
-                    if nextMoveDirection == 3:
-                        lastMove = 0
-
-                    #add current node to path 
-                    ant.path.append(current_node)
+                    #add current cell to path 
+                    ant.path.append(current_cell)
 
                     #check for complete path
-                    if (current_node.x == goal_node.x) & (current_node.y == goal_node.y):
+                    if (current_state.x == goal_state.x) & (current_state.y == goal_state.y):
                         #Path found! 
                         #Check if it's a good path
                         if len(self.best_path) == 0:
@@ -199,24 +185,19 @@ class E160_AntCO:
                         if len(ant.path) < len(self.best_path):
                             #better path found
                             self.best_path = ant.path
+                       
                         #set current path
                         current_path = ant.path
                         path_found = True
                         print "path found"
                             
-                    #Move to next node if no path
-                    ant.current_node = ant.current_node.neighbors[nextMoveDirection]
+                    #Move to next state if no path
+                    ant.current_state.x = new_x
+                    ant.current_state.y = new_y
+                    #TODO:fix theta
 
                 #a path is found. evaporate pheromones 
-                roe = 0.5
-                for node in self.node_list:
-                    node.pheromone = node.pheromone*(1-roe)
-
-                #Add pheromones to path 
-
-                ck = len(current_path)
-                for node in current_path:
-                    node.pheromone += (1/ck)
+                self.updatePheromones(current_path)
 
             #iterate paths
             iteration += 1
@@ -227,6 +208,73 @@ class E160_AntCO:
         # return the best path
 
         return self.best_path
+
+    def updatePheromones(self, current_path):
+        roe = 5
+        numCols = self.grid.numberOfCols
+        numRows = self.grid.numberOfRows
+        for row in numRows:
+            for col in numCols:
+                cell = self.grid.getCell(row,col)
+                cell.pheromone = cell.pheromone*(1-roe)
+        
+        ck = len(current_path)
+        for cell in current_path:
+            cell.pheromone += (1/ck)
+    
+    #return new state variables
+    def setNewState(self, current_state, nextMoveDirection):
+        x = current_state.x            
+        y = current_state.y
+        theta = current_state.theta
+
+        #initialize new row/col
+        new_row = 0
+        new_col = 0
+
+        [row, col] = self.environment.cell.returnRowCol(x,y)
+        if nextMoveDirection == 0:
+            #go north
+            new_col = col + 1
+            new_row = row
+        if nextMoveDirection == 1:
+            #go east 
+            new_col = col 
+            new_row = row - 1       
+        if nextMoveDirection == 2:
+            #go west
+            new_col = col 
+            new_row = row + 1 
+        if nextMoveDirection == 3:
+            #go south
+            new_col = col - 1
+            new_row = row
+
+        #get new x, y
+        new_cell = self.grid.getCell(new_row,new_col)
+        new_x = new_cell.x
+        new_y = new_cell.y
+
+        return [new_x, new_y]
+    
+    #returns the next move
+    def setLastMove(self, current_state, nextMoveDirection):
+        if nextMoveDirection == 0:
+            #go north, y+1
+            lastMove = 3
+            y = current_state.y + 1
+
+        if nextMoveDirection == 1:
+            #go east 
+            lastMove = 2
+                    
+        if nextMoveDirection == 2:
+            lastMove = 1
+        
+        if nextMoveDirection == 3:
+            lastMove = 0
+
+        return lastMove
 
 
     def build_trajectory(self, goal_node):
