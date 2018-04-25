@@ -98,12 +98,20 @@ class E160_AntCO:
     # the hurestic information can be the distance betweeen goal cell and cells under consideration
     # where cells under consideration are the neigbouring cells
     # therefore of the neigbours, the cell closest to goal will have higher probability
-   def MoveProbability(self, ant, goal_state):
-        # gives the probablities of the Ant moving N, E, W, or S
+    def MoveProbability(self, ant, goal_state):
+        # gives the probablities of the Ant moving N, NE, E, SE, S, SW, W, or NW
+        alpha = 0.6
+        beta = 0.4
+        for row in range(3):
+            column = []
+            for col in range(3):
+                column.append(0) 
+            ant.probability.append(column)    
+        
 
-        ant.probability = [0, 0, 0, 0]
         current_state = ant.current_state
         total_neighbor_pheromones = 0
+        total_neighbor_dist = 0
         
         current_x = ant.current_state.x
         current_y = ant.current_state.y
@@ -113,14 +121,39 @@ class E160_AntCO:
         goal_y = goal_state.y
         goal_heading =  goal_state.heading
 
-        [current_row current_col] = self.grid.returnRowCol(current_row, current_col)
-        [goal_row goal_col] = self.grid.returnRowCol(goal_x, goal_y)
+        [current_row, current_col] = self.grid.returnRowCol(current_row, current_col)
+        [goal_row, goal_col] = self.grid.returnRowCol(goal_x, goal_y)
 
-        current_cell =  grid.getCell(current_row, current_col)
-        goal_cell = grid.getCell(current_row, current_col)
+        current_cell =  self.grid.getCell(current_row, current_col)
+        goal_cell = self.grid.getCell(current_row, current_col)
 
-        neighbors = []
-        neighbors.append(grid.getCell(current_row-1, current_col-1))
+        RowColList = [-1, 0, 1]
+
+        for row in RowColList:
+            for col in RowColList:
+                c = self.grid.getCell(current_row-row, current_col-col)
+                [x, y] = c.returnXY
+                distance_to_goal = math.sqrt(math.pow(goal_x-x,2)+math.pow(goal_y-y,2))
+                c.DtoGoal = distance_to_goal
+                total_neighbor_dist += distance_to_goal
+                total_neighbor_pheromones += c.pheromone
+                self.grid.modCellInGrid(c, row, col)
+
+        for row in ant.probability:
+            for col in row:
+                c = self.grid.getCell(row, col)
+                ant.probability[row][col] = math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta) / (total_neighbor_dist*total_neighbor_pheromones)
+
+
+
+        # Hurestic information
+
+
+
+
+
+
+
 
     #sub class grid
     #write get x, y cell/ grid cell
@@ -216,10 +249,16 @@ class E160_AntCO:
             for col in numCols:
                 cell = self.grid.getCell(row,col)
                 cell.pheromone = cell.pheromone*(1-roe)
+                self.grid.modCellInGrid(cell, row, col)
+
         
         ck = len(current_path)
         for cell in current_path:
             cell.pheromone += (1/ck)
+            [x,y] = cell.returnXY()
+            [row, col] = self.grid.returnRowCol(x, y)
+            self.grid.modCellInGrid(cell, row, col)
+
     
     #return new state variables
     def setNewState(self, current_state, nextMoveDirection):

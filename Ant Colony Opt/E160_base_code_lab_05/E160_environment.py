@@ -98,18 +98,23 @@ class E160_environment:
             for row in numRows:
                 column = []
                 for col in numCols:
-                    column.append(self.cell(row, col, self, 0.1, False, False)) 
+                    column.append(self.cell(row, col, self, 0.1, False, 10000)) 
                 self.discritizedMap.append(column)
             pass
-		
-		def getCell(self, row, col):
+
+
+        def getCell(self, row, col):
 			if row >= self.numberOfRows() or col>= self.numberOfCols():
-				c = environment.cell(row, col, self, 0, True)
+				c = environment.cell(row, col, self, 0, True, 10000)
 			elif row < 0 or col < 0:
-				c = environment.cell(row, col, self, 0, True)
+				c = environment.cell(row, col, self, 0, True, 10000)
 			else:
 				c = self.discritizedMap[row][col]
-		    return c
+			return c
+
+        def modCellInGrid(self, cell, row, col):
+        	self.discritizedMap[row][col] = cell
+
 
 
         def updateOccupancy(self):
@@ -155,19 +160,19 @@ class E160_environment:
 	    			[[x,y][xa,xb,ya,yb]] = c.returnCellDim()
 	    			if y > ya and y < yb:
 	    				if x > xa and x < xb:
-	    					return [row col]
+	    					return [row, col]
 	    	pass
 
 
 
     class cell:
         """docstring for ClassName"""
-        def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, isGoal = False):
+        def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, DtoGoal = 10000):
             self.row = row
             self.col = col
             self.pheromone = pheromone
             self.occupied = occupied
-            self.isGoal = isGoal
+            self.DtoGoal = DtoGoal
             self.cell_edge_length = grid.cell_edge_length
             self.width = grid.environment.width
             self.height = grid.environment.height
