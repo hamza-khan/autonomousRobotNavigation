@@ -12,10 +12,14 @@ class E160_AntCO:
        self.allPaths = []
        self.environment = environment
        # self.state = E160_state()
+       
+       # 4/25 3:30 pm added the necessary cnstants from enviornment to instate self.grid
        self.cell_edge_length = 0.1
-#       self.robot_radius = robot_radius
-       #self.grid = environment.grid(self.environment, self.cell_edge_length, self.robot_radius)
-
+       self.width = environment.width
+       self.height = environment.height
+       self.walls = environment.walls
+       self.robot_radius = environment.robot_radius
+       self.grid = environment.AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
 
        self.num_ants = 10
@@ -28,6 +32,7 @@ class E160_AntCO:
        # self.y_grid_cell_size = self.max_x/self.grid_size
        # self.MAX_NODE_NUMBER = 100000
        # self.expansion_range = 0.4
+
 
     # def initializeGrid(self, environment, cell_edge_length, robot_radius):
     #     self.grid.discretizeMap()
@@ -121,23 +126,25 @@ class E160_AntCO:
         goal_y = goal_state.y
         goal_heading =  goal_state.heading
 
-        [current_row, current_col] = self.environment.grid.returnRowCol(current_row, current_col)
-        [goal_row, goal_col] = self.environment.grid.returnRowCol(goal_x, goal_y)
+        # 4/25 3:34 pm rcorrecrted the calling of the functio was self.enviornment.grid.... changed to self.grid....
+        [current_row, current_col] = self.grid.returnRowCol(current_row, current_col)
+        [goal_row, goal_col] = self.grid.returnRowCol(goal_x, goal_y)
 
-        current_cell =  self.environment.grid.getCell(current_row, current_col)
-        goal_cell = self.environment.grid.getCell(current_row, current_col)
+        current_cell =  self.grid.getCell(current_row, current_col)
+        goal_cell = self.grid.getCell(current_row, current_col)
 
         RowColList = [-1, 0, 1]
 
         for row in RowColList:
             for col in RowColList:
-                c = self.environment.grid.getCell(current_row-row, current_col-col)
-                [x, y] = c.returnXY
+                # 4/25 3:38 pm fixed a bug in calling of getCell (changed from minus to plus)
+                c = self.grid.getCell(current_row+row, current_col+col)
+                [x, y] = c.returnXY()
                 distance_to_goal = math.sqrt(math.pow(goal_x-x,2)+math.pow(goal_y-y,2))
                 c.DtoGoal = distance_to_goal
                 total_neighbor_dist += distance_to_goal
                 total_neighbor_pheromones += c.pheromone
-                self.environment.grid.modCellInGrid(c, row, col)
+                self.grid.modCellInGrid(c, row, col)
 
         for row in ant.probability:
             for col in row:
@@ -190,7 +197,8 @@ class E160_AntCO:
                 while (path_found == False):
                     #Find current cell
                     current_state = ant.current_state
-                    [row, col] = self.environment.grid.cell.returnRowCol(x,y)
+                    # 4/25 3:42pm corrected call of returnRowCAll
+                    [row, col] = self.grid.returnRowCol(x,y)
                     current_cell = self.grid.getCell(row,col)
 
                     #update ant motion probability
