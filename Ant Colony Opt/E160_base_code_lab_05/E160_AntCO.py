@@ -5,7 +5,7 @@ from E160_state import *
 
 class E160_AntCO:
 
-    def __init__(self, environment, start_robot_state, robot_radius):
+    def __init__(self, environment, start_robot_state): #removed:robot_radius as an input
 
        self.ants = []
        self.best_path = []
@@ -13,8 +13,8 @@ class E160_AntCO:
        self.environment = environment
        # self.state = E160_state()
        self.cell_edge_length = 0.1
-       self.robot_radius = robot_radius
-       self.grid = environment.grid(self.environment, self.cell_edge_length, self.robot_radius)
+#       self.robot_radius = robot_radius
+       #self.grid = environment.grid(self.environment, self.cell_edge_length, self.robot_radius)
 
        # Variables
 
@@ -29,9 +29,9 @@ class E160_AntCO:
        # self.MAX_NODE_NUMBER = 100000
        # self.expansion_range = 0.4
 
-    def initializeGrid(self, environment, cell_edge_length, robot_radius):
-        self.grid.discritizeMap()
-        self.grid.updateOccupany()
+    # def initializeGrid(self, environment, cell_edge_length, robot_radius):
+    #     self.grid.discretizeMap()
+    #     self.grid.updateOccupany()
 
     # TODO: Update
     # def update_plan(self, start_robot_state, goal_node):
@@ -121,27 +121,27 @@ class E160_AntCO:
         goal_y = goal_state.y
         goal_heading =  goal_state.heading
 
-        [current_row, current_col] = self.grid.returnRowCol(current_row, current_col)
-        [goal_row, goal_col] = self.grid.returnRowCol(goal_x, goal_y)
+        [current_row, current_col] = self.environment.grid.returnRowCol(current_row, current_col)
+        [goal_row, goal_col] = self.environment.grid.returnRowCol(goal_x, goal_y)
 
-        current_cell =  self.grid.getCell(current_row, current_col)
-        goal_cell = self.grid.getCell(current_row, current_col)
+        current_cell =  self.environment.grid.getCell(current_row, current_col)
+        goal_cell = self.environment.grid.getCell(current_row, current_col)
 
         RowColList = [-1, 0, 1]
 
         for row in RowColList:
             for col in RowColList:
-                c = self.grid.getCell(current_row-row, current_col-col)
+                c = self.environment.grid.getCell(current_row-row, current_col-col)
                 [x, y] = c.returnXY
                 distance_to_goal = math.sqrt(math.pow(goal_x-x,2)+math.pow(goal_y-y,2))
                 c.DtoGoal = distance_to_goal
                 total_neighbor_dist += distance_to_goal
                 total_neighbor_pheromones += c.pheromone
-                self.grid.modCellInGrid(c, row, col)
+                self.environment.grid.modCellInGrid(c, row, col)
 
         for row in ant.probability:
             for col in row:
-                c = self.grid.getCell(row, col)
+                c = self.environment.grid.getCell(row, col)
                 ant.probability[row][col] = math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta) / (total_neighbor_dist*total_neighbor_pheromones)
 
 
@@ -190,7 +190,7 @@ class E160_AntCO:
                 while (path_found == False):
                     #Find current cell
                     current_state = ant.current_state
-                    [row, col] = self.environment.cell.returnRowCol(x,y)
+                    [row, col] = self.environment.grid.cell.returnRowCol(x,y)
                     current_cell = self.grid.getCell(row,col)
 
                     #update ant motion probability
@@ -217,7 +217,7 @@ class E160_AntCO:
                         if len(ant.path) < len(self.best_path):
                             #better path found
                             self.best_path = ant.path
-                       
+                        self.allPaths.append(ant.path)
                         #set current path
                         current_path = ant.path
                         path_found = True
@@ -404,5 +404,9 @@ class E160_AntCO:
             self.probability = probability
             self.path = []
 
+
         def __str__(self):
             return str(self.x) + " " + str(self.y) + " " + str(self.heading) + " " + str(self.probability)
+
+        def pathLength(self):
+            return len(self.path)

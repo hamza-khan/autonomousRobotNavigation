@@ -100,7 +100,9 @@ class E160_graphics:
         # draw static environment
         for w in self.environment.walls:
             self.draw_wall(w)
-            
+
+        #draw the grid for the ant colony optimization
+        self.draw_grid(environment.grid)
         # draw first robot
         for r in self.environment.robots:
             self.initial_draw_robot(r)    
@@ -109,16 +111,22 @@ class E160_graphics:
         self.RRT = []
         self.path = []
 
-    def draw_rrt_help(self, node):
-        # print node
-        if node == None:
-            pass
-        else:
-            for child in node.children:
-                node_point = self.scale_points([node.x, node.y], self.scale)
-                child_point = self.scale_points([child.x, child.y], self.scale)
-                self.RRT.append(self.canvas.create_line(node_point, child_point, fill="gray"))
-                self.draw_rrt_help(child)
+    def draw_grid(self, grid):
+        #TODO: finish this function to draw the entire grid correctly
+        # print grid
+        for col in grid.discretizedMap:
+            x1, y1 = col[0].returnXY()
+            x2, y2 = col[grid.numberOfRows()].returnXY()
+            point1 = self.scale_points([x1, y1], self.scale)
+            point2 = self.scale_points([x2, y2], self.scale)
+            self.canvas.create_line(point1, point2, fill="black")
+        #     self.draw_rrt_help(child)
+        # for child in node.children:
+        #     node_point = self.scale_points([node.x, node.y], self.scale)
+        #     child_point = self.scale_points([child.x, child.y], self.scale)
+        #     self.RRT.append(self.canvas.create_line(node_point, child_point, fill="gray"))
+        #     self.draw_rrt_help(child)
+
 
     def draw_trajectory(self):
         for r in self.environment.robots:
@@ -133,7 +141,8 @@ class E160_graphics:
 
     def draw_bestAntPath(self):
         for r in self.environment.robots:
-            best_path = r.ACO.best_path
+            best_path = r.AntCO.best_path
+            grid = self.environment.grid
             for i in range(len(best_path) - 1):
                 next_node = best_path[i+1]
                 current_node = best_path[i]
@@ -145,7 +154,7 @@ class E160_graphics:
     def draw_antPaths(self):
         for r in self.environment.robots:
             allPaths = []
-            for ant in r.ACO.ants:
+            for ant in r.AntCO.ants:
                 allPaths.append(ant.path)
                 
             for path in allPaths:

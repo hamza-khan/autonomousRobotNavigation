@@ -14,6 +14,7 @@ def main():
    
     # instantiate robot navigation classes
     environment = E160_environment()
+    
     graphics = E160_graphics(environment)
 
 

@@ -2,7 +2,7 @@
 from E160_state import *
 from E160_PF import *
 # from E160_MP import *
-from E160_ACO import *
+#from E160_AntCO import *
 from E160_AntCO import *
 import math
 import datetime
@@ -27,10 +27,12 @@ class E160_robot:
         #self.w = 0.1
         self.R = 0
         self.L = 0
-        self.radius = 0.147 / 2
+#        self.radius = 0.147 / 2
+        self.radius = self.environment.robot_radius
         self.width = 2*self.radius
         self.wheel_radius = 0.03
-        self.botDiameter = 0.15
+        # self.botDiameter = 0.15
+        self.botDiameter = 2*self.environment.robot_radius
         self.address = address
         self.ID = self.address.encode().__str__()[-1]
         self.last_measurements = []
@@ -66,10 +68,10 @@ class E160_robot:
         # Path Planner and Particle Filter
         self.PF = E160_PF(environment, self.width, self.wheel_radius, self.encoder_resolution)
         # self.MP = E160_MP(environment, self.state_odo, self.radius)
-        self.ACO = E160_ACO(environment, self.state_odo, self.radius)
-        self.best_path = self.ACO.best_path
-        #TODO: build ACO path instead
-        self.ACO_build_path(self.best_path)
+        self.AntCO = E160_AntCO(environment, self.state_odo)
+        self.best_path = self.AntCO.best_path
+        #TODO: build AntCO path instead
+        self.AntCO_build_path(self.best_path)
         # self.build_path([0], self.MP.node_list)
         self.replan_path = False
         
@@ -111,12 +113,12 @@ class E160_robot:
             self.state_curr_dest = self.state_est
 
             # Set goal node
-            #goal_node = E160_ACO.Node(self.state_des.x, self.state_des.y)
-            goal_node = E160_ACO.Node(9, 9, 0.1, 0, [], 0)
+            #goal_node = E160_AntCO.Node(self.state_des.x, self.state_des.y)
+            goal_node = E160_AntCO.Node(9, 9, 0.1, 0, [], 0)
 
             # Generate path with RRT
-            node_indices = self.ACO.update_plan(self.state_odo, goal_node)
-            self.ACO_build_path(self.best_path)
+            node_indices = self.AntCO.update_plan(self.state_odo, goal_node)
+            self.AntCO_build_path(self.best_path)
             self.replan_path = False
         else:
             pass
@@ -392,7 +394,7 @@ class E160_robot:
         # keep this to return the updated state
         return state
 
-    def ACO_build_path(self, best_path):
+    def AntCO_build_path(self, best_path):
         self.trajectory = []
         for node in best_path:
             current_node = node
