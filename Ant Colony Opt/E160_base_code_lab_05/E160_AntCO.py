@@ -148,8 +148,14 @@ class E160_AntCO:
 
         for row in ant.probability:
             for col in row:
-                c = self.environment.grid.getCell(row, col)
-                ant.probability[row][col] = math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta) / (total_neighbor_dist*total_neighbor_pheromones)
+                # 4/25 3:50 pm fixed function call
+                c = self.grid.getCell(row, col)
+
+                # 4/25 3:51 pm added check for occupancy
+                if c.occupied == True:
+                    ant.probability[row][col] = 0
+                else:
+                    ant.probability[row][col] = math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta) / (total_neighbor_dist*total_neighbor_pheromones)
 
 
 
@@ -278,7 +284,8 @@ class E160_AntCO:
         new_row = 0
         new_col = 0
 
-        [row, col] = self.environment.cell.returnRowCol(x,y)
+        # 4?25 3:49pm fixed function call
+        [row, col] = self.grid.returnRowCol(x,y)
         if nextMoveDirection == 0:
             #go north
             new_col = col + 1
