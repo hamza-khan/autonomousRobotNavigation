@@ -13,13 +13,14 @@ class E160_AntCO:
        self.environment = environment
        # self.state = E160_state()
        
-       # 4/25 3:30 pm added the necessary cnstants from enviornment to instate self.grid
+       # 4/25 3:30 pm added the necessary constants from enviornment to instate self.grid
        self.cell_edge_length = 0.1
        self.width = environment.width
        self.height = environment.height
        self.walls = environment.walls
        self.robot_radius = environment.robot_radius
-       self.grid = environment.AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
+       #4/26 10am fixed grid call
+       self.grid = environment.grid#AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
 
        self.num_ants = 10
@@ -33,25 +34,30 @@ class E160_AntCO:
        # self.MAX_NODE_NUMBER = 100000
        # self.expansion_range = 0.4
 
-
-    # def initializeGrid(self, environment, cell_edge_length, robot_radius):
+    #def initializeGrid(self, environment, cell_edge_length, robot_radius):
+    #    self.grid.initializeGrid()
     #     self.grid.discretizeMap()
     #     self.grid.updateOccupany()
 
     # TODO: Update
-    # def update_plan(self, start_robot_state, goal_node):
-    #     self.cell_grid = {}
-    #     self.node_list = []
-    #     self.num_nodes = 0
+    #7:23 uncommented this and changed goal_node to goal_state
+    #not finished 
+    def update_plan(self, start_robot_state, goal_state):
+        self.cell_grid = {}
+        #self.node_list = []
+        #self.num_nodes = 0
 
-    #     # Add Code: set the variable self.start_node and add it to the PRM
-    #     neighbors = []
-    #     self.start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,neighbors, 0)
-    #     self.start_node = self.Node(0, 0, 0.1, 0, neighbors, 0)
-    #     self.addNode(self.start_node)
-               
-        
-    #     return self.AntColonyPathPlanner(goal_node)
+        # Add Code: set the variable self.start_node and add it to the PRM
+        #neighbors = []
+        self.start_robot_state = start_robot_state
+        #self.start_node = self.Node(start_robot_state.x, start_robot_state.y,0.1,0,neighbors, 0)
+        #self.start_node = self.Node(0, 0, 0.1, 0, neighbors, 0)
+        #self.addNode(self.start_node)
+        #[row, col] = self.grid.returnRowCol(x,y)
+        #self.current_cell = self.grid.getCell(row,col)
+        #self.best_path.append()
+                  
+        return self.AntColonyPathPlanner(goal_state)
 
     def angle_wrap(self, a):
         while a > math.pi:
@@ -105,29 +111,32 @@ class E160_AntCO:
     # therefore of the neigbours, the cell closest to goal will have higher probability
     def MoveProbability(self, ant, goal_state):
         # gives the probablities of the Ant moving N, NE, E, SE, S, SW, W, or NW
+    
         alpha = 0.6
         beta = 0.4
+
         for row in range(3):
             column = []
             for col in range(3):
                 column.append(0) 
             ant.probability.append(column)    
         
-
         current_state = ant.current_state
         total_neighbor_pheromones = 0
         total_neighbor_dist = 0
         
         current_x = ant.current_state.x
         current_y = ant.current_state.y
-        current_heading = ant.current_state.heading
+        #4/26 10:16am commented out cause states don't have heading'
+        #current_heading = ant.current_state.heading
 
         goal_x = goal_state.x
         goal_y = goal_state.y
-        goal_heading =  goal_state.heading
+        #goal_heading =  goal_state.heading
 
         # 4/25 3:34 pm rcorrecrted the calling of the functio was self.enviornment.grid.... changed to self.grid....
-        [current_row, current_col] = self.grid.returnRowCol(current_row, current_col)
+        # 4/26 10:18am corrected current_row, current_col to x and y 
+        [current_row, current_col] = self.grid.returnRowCol(current_x, current_y)
         [goal_row, goal_col] = self.grid.returnRowCol(goal_x, goal_y)
 
         current_cell =  self.grid.getCell(current_row, current_col)
@@ -145,11 +154,14 @@ class E160_AntCO:
                 total_neighbor_dist += distance_to_goal
                 total_neighbor_pheromones += c.pheromone
                 self.grid.modCellInGrid(c, row, col)
-
-        for row in ant.probability:
-            for col in row:
+        
+        print "ant prob", ant.probability
+        for row in RowColList:
+            # 4/26 10:25am changed for loop to be functional
+            #entireRow = ant.probability[row]
+            for col in RowColList:
                 # 4/25 3:50 pm fixed function call
-                c = self.grid.getCell(row, col)
+                c = self.grid.getCell(current_row + row, current_col + col)
 
                 # 4/25 3:51 pm added check for occupancy
                 if c.occupied == True:
@@ -160,12 +172,6 @@ class E160_AntCO:
 
 
         # Hurestic information
-
-
-
-
-
-
 
 
     #sub class grid
@@ -198,24 +204,33 @@ class E160_AntCO:
         while(iteration <= self.max_iteration):
             #iterate ants until a path is found
             for ant in self.ants:
+
+                #TODO: make last move work
                 lastMove = 0
                 path_found = False
                 while (path_found == False):
                     #Find current cell
                     current_state = ant.current_state
+                    current_x = current_state.x
+                    current_y = current_state.y
                     # 4/25 3:42pm corrected call of returnRowCAll
-                    [row, col] = self.grid.returnRowCol(x,y)
-                    current_cell = self.grid.getCell(row,col)
+                    # 4/25 11:03pm cast row col as ints
+                    [row, col] = self.grid.returnRowCol(current_x,current_y)
+                    current_cell = self.grid.getCell(int(row),int(col))
 
                     #update ant motion probability
-                    self.MoveProbability(ant)
+                    self.MoveProbability(ant, goal_state)
 
                     #determine best direction
                     ant.probability[lastMove] = 0
+
+                    #TODO: max of 2D array and save direction
                     nextMoveDirection = ant.probability.index(max(ant.probability))
                     
                     #set up next state and save lastMove
                     [new_x,new_y] = self.setNewState(current_state, nextMoveDirection)
+                    
+                    #TODO: update setLastMove()
                     lastMove = self.setLastMove(current_state, nextMoveDirection)
 
                     #add current cell to path 

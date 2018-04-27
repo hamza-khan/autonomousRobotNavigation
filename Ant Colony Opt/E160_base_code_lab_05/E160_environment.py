@@ -13,22 +13,21 @@ class E160_environment:
     def __init__(self):
         self.width = 2.0
         self.height = 1.2
-        self.cell_edge_length = 0.1
+        self.cell_edge_length = 0.05
         self.robot_radius = 0.147/2
         # set up walls, putting top left point first
         self.walls = []
         self.walls.append(E160_wall([-0.5, 0.5, -0.5, -0.5],"vertical"))
-        self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
+        #self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
         self.walls.append(E160_wall([-0.5, 0.5, 0.5, 0.5],"horizontal"))
-        self.walls.append(E160_wall([0.0, -0.5, 0.0, -1.0],"vertical"))
-        self.walls.append(E160_wall([0.0, -1.0, 1.0, -1.0],"horizontal"))
-        self.walls.append(E160_wall([0.5, -0.5, 1.0, -0.5],"horizontal"))
-        self.walls.append(E160_wall([1.0, -0.5, 1.0, -1.0],"vertical"))
-        self.walls.append(E160_wall([1.0, -1.0, 1.0, -1.5],"vertical"))
-            
-
+        # self.walls.append(E160_wall([0.0, -0.5, 0.0, -1.0],"vertical"))
+        # self.walls.append(E160_wall([0.0, -1.0, 1.0, -1.0],"horizontal"))
+        # self.walls.append(E160_wall([0.5, -0.5, 1.0, -0.5],"horizontal"))
+        # self.walls.append(E160_wall([1.0, -0.5, 1.0, -1.0],"vertical"))
+        # self.walls.append(E160_wall([1.0, -1.0, 1.0, -1.5],"vertical"))
+        
         #set up the AntGrid 
-        self.grid = AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)        
+        self.grid = self.AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)        
         self.grid.initializeGrid()
 
         # create vars for hardware vs simulation
@@ -42,7 +41,7 @@ class E160_environment:
             try:
                 self.xbee = XBee(self.serial_port)
             except:
-                print("Couldn't find the serial port")
+                print "Couldn't find the serial port" 
         
         # Setup the robots
         self.num_robots = 1
@@ -74,158 +73,167 @@ class E160_environment:
 
 
     #  add function getCell to grid
-class AntGrid:
-    """docstring for ClassName"""
-    def __init__(self, width, height, walls, cell_edge_length, robot_radius):
-        #self.environment = environment #removed  passing in environment
-        self.cell_edge_length = cell_edge_length
-        self.robot_radius = robot_radius
-        self.width = width
-        self.height = height
-        self.walls = walls
-        self.discretizedMap = []
+    class AntGrid:
+        """docstring for ClassName"""
+        def __init__(self, width, height, walls, cell_edge_length, robot_radius):
+            #self.environment = environment #removed  passing in environment
+            self.cell_edge_length = cell_edge_length
+            self.robot_radius = robot_radius
+            self.width = width
+            self.height = height
+            self.walls = walls
+            self.discretizedMap = []
 
-	# TODO: fix __str__
-	# def __str__(self):
-    #     return str(self.cell_edge_length) + " " + str(self.robot_radius)
+        # TODO: fix __str__
+        # def __str__(self):
+        #     return str(self.cell_edge_length) + " " + str(self.robot_radius)
 
-    def numberOfCells(self):
-        numCells = self.numberOfCols()*self.numberOfRows()
-        return numCells
+        def numberOfCells(self):
+            numCells = self.numberOfCols()*self.numberOfRows()
+            return numCells
+            
+        def numberOfCols(self):
+            mapWidth = self.width
+            numCols = math.ceil(mapWidth/self.cell_edge_length)
+            return int(numCols)
+
+        def numberOfRows(self):
+            mapHeight = self.height
+            numRows = math.ceil(mapHeight/self.cell_edge_length)
+            return int(numRows)
         
-    def numberOfCols(self):
-        mapWidth = self.width
-        numCols = math.ceil(mapWidth/self.cell_edge_length)
-        return int(numCols)
-
-    def numberOfRows(self):
-        mapHeight = self.height
-        numRows = math.ceil(mapHeight/self.cell_edge_length)
-        return int(numRows)
-
-    def initializeGrid(self):
-        self.discretizeMap()
-        self.addWalls()
-
-    def discretizeMap(self):
-		##access by calling discretizeMap[row][col]
-        numRows = self.numberOfRows()
-        numCols = self.numberOfCols()
-        for row in range(numRows):
-            column = []
-            for col in range(numCols):
-                column.append(AntCell(row, col, self, 0.1, False, 10000)) 
-            self.discretizedMap.append(column)
-        pass
+        def initializeGrid(self):
+            self.discretizeMap()
+            self.addWalls()
 
 
-    def getCell(self, row, col):
-        if row >= self.numberOfRows() or col>= self.numberOfCols():
-            c = AntCell(row, col, self, 0, True, 10000)
-        elif row < 0 or col < 0:
-            c = AntCell(row, col, self, 0, True, 10000)
-        else:
-            c = self.discretizedMap[row][col]
-        return c
+        def discretizeMap(self):
+            ##access by calling discretizeMap[row][col]
+            numRows = self.numberOfRows()
+            print "numrows: ", numRows
+            numCols = self.numberOfCols()
+            print "numcols: ", numCols
+            for row in range(numRows):
+                rowList = []
+                for col in range(numCols):
+                    rowList.append(self.AntCell(row, col, self, 0.1, False, 10000)) 
+                self.discretizedMap.append(rowList)
+            pass
 
-    def modCellInGrid(self, cell, row, col):
-        self.discretizedMap[row][col] = cell
+
+        def getCell(self, row, col):
+            if row >= self.numberOfRows() or col>= self.numberOfCols():
+                c = self.AntCell(row, col, self, 0, True, 10000)
+            elif row < 0 or col < 0:
+                c = self.AntCell(row, col, self, 0, True, 10000)
+            else:
+               # print "row,col", row, col
+                c = self.discretizedMap[row][col]
+            return c
+
+        def modCellInGrid(self, cell, row, col):
+            self.discretizedMap[row][col] = cell
 
 
 
-    def addWalls(self):
-        walls = self.walls
+        def addWalls(self):
+            walls = self.walls
 
-        for wall in walls:
-            [xa, xb, ya, yb] = self.bufferWallCoordinates(wall)
+            for wall in walls:
+                [xa, xb, ya, yb] = self.bufferWallCoordinates(wall)
+                for row in range(self.numberOfRows()):
+                    for col in range(self.numberOfCols()):                    
+                        cell = self.getCell(row,col)
+                        x, y = cell.returnXY()
+                        if x >= xa and x <= xb:
+                            if y <= yb and y >= ya: 
+                                cell.occupied = True
+                                print x,y
+            pass
+
+
+        def bufferWallCoordinates(self, wall):
+            robotRadius = self.robot_radius
+            bufferScaling = 0 #added a buffer zone scaling factor
+            if wall.slope == "vertical":
+                print "wall.points: ", wall.points
+                xa = wall.points[0] #+ wall.radius
+                ya = wall.points[5] #- wall.radius
+                xb = wall.points[2] #- wall.radius
+                yb = wall.points[1] #+ wall.radius
+                xa = xa - (bufferScaling*robotRadius)
+                xb = xb + (bufferScaling*robotRadius)
+                ya = ya - (bufferScaling*robotRadius)
+                yb = yb + (bufferScaling*robotRadius)
+        # horizontal wall
+            else:
+                xa = wall.points[0] #+ wall.radius
+                ya = wall.points[1] #+ wall.radius
+                xb = wall.points[4] #- wall.radius
+                yb = wall.points[5] #- wall.radius
+                xa = xa - (bufferScaling*robotRadius)
+                xb = xb + (bufferScaling*robotRadius)
+                ya = ya - (bufferScaling*robotRadius)
+                yb = yb + (bufferScaling*robotRadius)
+            return [xa, xb, ya, yb]
+
+        # added a new function for returning row col
+        #9:10am 4/26 changed row col function because flooring wasn't working
+        def returnRowCol(self, x, y):
             for row in range(self.numberOfRows()):
-                for col in range(self.numberOfCols()):                    
-                    cell = self.getCell(row,col)
-                    x, y = cell.returnXY()
-                    if x > xa and x < xb:
-                        if y > yb and y < ya: 
-                            cell.occupied = True
-        pass
+                for col in range(self.numberOfCols()):
+                    c = self.getCell(row,col)
+                    x, y = c.returnXY()
+                    [xa,xb,ya,yb] = c.returnCellDim()
+                    if y > ya and y < yb:
+                        if x > xa and x < xb:
+                            return [row, col]
+        	pass
 
+        # def returnRowCol(self, x, y):
+        #     col = math.floor((x + (self.width/2))/self.cell_edge_length )  
+        #     row = math.floor((x + (self.height/2))/self.cell_edge_length )
 
-    def bufferWallCoordinates(self, wall):
-        robotRadius = self.robot_radius
-        bufferScaling = 2.5 #added a buffer zone scaling factor
-        if wall.slope == "vertical":
-            x1 = wall.points[0] + wall.radius
-            y1 = wall.points[1] - wall.radius
-            x2 = wall.points[4] - wall.radius
-            y2 = wall.points[5] + wall.radius
-            xa = x1 - (bufferScaling*robotRadius)
-            xb = x1 + (bufferScaling*robotRadius)
-            ya = y1 + (bufferScaling*robotRadius)
-            yb = y2 - (bufferScaling*robotRadius)
-    # horizontal wall
-        else:
-            x1 = wall.points[0] + wall.radius
-            y1 = wall.points[1] + wall.radius
-            x2 = wall.points[4] - wall.radius
-            y2 = wall.points[5] - wall.radius
-            xa = x1 - (bufferScaling*robotRadius)
-            xb = x2 + (bufferScaling*robotRadius)
-            ya = y1 + (bufferScaling*robotRadius)
-            yb = y1 - (bufferScaling*robotRadius)
-        return [xa, xb, ya, yb]
+        #     return row, col
 
-    # added a new function for returning row col
-    # def returnRowCol(self, x, y):
-    # 	for row in numRows:
-    # 		for col in numCols:
-    # 			c = self.getCell(row,col)
-    # 			[[x,y][xa,xb,ya,yb]] = c.returnCellDim()
-    # 			if y > ya and y < yb:
-    # 				if x > xa and x < xb:
-    # 					return [row, col]
-    # 	pass
+        class AntCell:
+            """docstring for ClassName"""
+            def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, DtoGoal = 10000):
+                self.row = row
+                self.col = col
+                self.pheromone = pheromone
+                self.occupied = occupied
+                self.DtoGoal = DtoGoal
+                self.cell_edge_length = grid.cell_edge_length
+                self.width = grid.width
+                self.height = grid.height
 
-    def returnRowCol(self, x, y):
-        col = math.floor((x + (self.width/2))/self.cell_edge_length)  
-        row = math.floor((x + (self.height/2))/self.cell_edge_length)
+            def returnXY(self): 
+                x = ((self.col)*self.cell_edge_length) - self.width/2 + self.cell_edge_length/2
+                y = ((self.row)*self.cell_edge_length) - self.height/2 + self.cell_edge_length/2
+                #change: got rid of +1 from row and col and the edge_length/2
+                return x,y
 
-        return row, col
+            #returns [xa,ya,xb,yb] or [[center][corners]]
+            def returnCellDim(self): 
+                x = ((self.col)*self.cell_edge_length) - self.width/2  + self.cell_edge_length/2
+                y = ((self.row)*self.cell_edge_length) - self.height/2 + self.cell_edge_length/2
+                #change: got rid of +1 from row and col and the edge_length/2
+                xa = x - (self.cell_edge_length/2)
+                xb = x + (self.cell_edge_length/2)
+                ya = y - (self.cell_edge_length/2)
+                yb = y + (self.cell_edge_length/2)
 
-class AntCell:
-    """docstring for ClassName"""
-    def __init__(self, row, col, grid, pheromone = 0.1, occupied = False, DtoGoal = 10000):
-        self.row = row
-        self.col = col
-        self.pheromone = pheromone
-        self.occupied = occupied
-        self.DtoGoal = DtoGoal
-        self.cell_edge_length = grid.cell_edge_length
-        self.width = grid.width
-        self.height = grid.height
+                #10am 4/26 changed to list
+                return [xa,ya,xb,yb]
 
-    def returnXY(self): 
-        x = ((self.col)*self.cell_edge_length) - self.width/2 + self.cell_edge_length/2
-        y = ((self.row)*self.cell_edge_length) - self.height/2 + self.cell_edge_length/2
-        #change: got rid of +1 from row and col and the edge_length/2
-        return x,y
+            # #TODO: wrong
+            # #inputs any x and y and gets cell using returnCellDim as bounds
+            # def returnRowCol(self, x, y):
+            #     row = (((2*y)+self.height)/self.cell_edge_length) - 1
+            #     col = (((2*x)+self.width)/self.cell_edge_length) - 1
 
-    #returns [[x,y][xa,xb,ya,yb]] or [[center][corners]]
-    def returnCellDim(self): 
-        x = ((self.col)*self.cell_edge_length) - self.width/2  + self.cell_edge_length/2
-        y = ((self.row)*self.cell_edge_length) - self.height/2 + self.cell_edge_length/2
-        #change: got rid of +1 from row and col and the edge_length/2
-        xa = x - (self.cell_edge_length/2)
-        xb = x + (self.cell_edge_length/2)
-        ya = y - (self.cell_edge_length/2)
-        yb = y + (self.cell_edge_length/2)
+            #     row = math.ceiling(row)
+            #     col = math.ceiling(col)
 
-        return [[x,y][xa,xb,ya,yb]]
-
-    # #TODO: wrong
-    # #inputs any x and y and gets cell using returnCellDim as bounds
-    # def returnRowCol(self, x, y):
-    #     row = (((2*y)+self.height)/self.cell_edge_length) - 1
-    #     col = (((2*x)+self.width)/self.cell_edge_length) - 1
-
-    #     row = math.ceiling(row)
-    #     col = math.ceiling(col)
-
-    #     return [row, col]
+            #     return [row, col]

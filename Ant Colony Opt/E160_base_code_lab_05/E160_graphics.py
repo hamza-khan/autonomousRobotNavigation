@@ -114,12 +114,46 @@ class E160_graphics:
     def draw_grid(self, grid):
         #TODO: finish this function to draw the entire grid correctly
         # print grid
-        for col in grid.discretizedMap:
-            x1, y1 = col[0].returnXY()
-            x2, y2 = col[grid.numberOfRows()].returnXY()
+        gridTop = []
+        gridLeft = []
+        gridRight = []
+        gridBottom = []
+        gridObstacles = []
+
+        for row in range(grid.numberOfRows()):
+            for col in range(grid.numberOfCols()):
+                cell = grid.getCell(row,col)
+                if row == 0:
+                    gridTop.append(cell.returnXY())
+                if col == 0:
+                    gridLeft.append(cell.returnXY())
+                if row == grid.numberOfRows()-1:
+                    gridBottom.append(cell.returnXY())
+                if col == grid.numberOfCols()-1:
+                    gridRight.append(cell.returnXY())
+                if cell.occupied:
+                    [xa,ya,xb,yb] = cell.returnCellDim()
+                    self.draw_square([xa,yb,xb,yb,xb,ya,xa,ya])
+                   # print [xa, xb, ya, yb]
+                
+
+        
+        for i in range(grid.numberOfCols()):
+            x1, y1 = gridTop[i]
+            x2, y2 = gridBottom[i]
             point1 = self.scale_points([x1, y1], self.scale)
             point2 = self.scale_points([x2, y2], self.scale)
-            self.canvas.create_line(point1, point2, fill="black")
+            self.canvas.create_line(point1, point2, fill="grey")
+
+        print gridTop
+        for i in range(grid.numberOfRows()):
+            x1, y1 = gridLeft[i]
+            x2, y2 = gridRight[i]
+            point1 = self.scale_points([x1, y1], self.scale)
+            point2 = self.scale_points([x2, y2], self.scale)
+            self.canvas.create_line(point1, point2, fill="grey")
+
+        
         #     self.draw_rrt_help(child)
         # for child in node.children:
         #     node_point = self.scale_points([node.x, node.y], self.scale)
@@ -190,7 +224,13 @@ class E160_graphics:
         
         wall_points = self.scale_points(wall.points, self.scale)
         wall.poly = self.canvas.create_polygon(wall_points, fill='black')
+
+    def draw_square(self, points):
         
+        wall_points = self.scale_points(points, self.scale)
+        points = self.canvas.create_polygon(wall_points, fill='red')
+
+
     def scale_points(self, points, scale):
         scaled_points = []
         for i in range(len(points)-1):

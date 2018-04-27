@@ -112,12 +112,14 @@ class E160_robot:
             self.path_counter = 0
             self.state_curr_dest = self.state_est
 
+            #7:17pm 4/25 changed goal node to goal state
             # Set goal node
             #goal_node = E160_AntCO.Node(self.state_des.x, self.state_des.y)
-            goal_node = E160_AntCO.Node(9, 9, 0.1, 0, [], 0)
+            #goal_node = E160_AntCO.Node(9, 9, 0.1, 0, [], 0)
+            goal_state = self.state_des
 
             # Generate path with RRT
-            node_indices = self.AntCO.update_plan(self.state_odo, goal_node)
+            node_indices = self.AntCO.update_plan(self.state_odo, goal_state)
             self.AntCO_build_path(self.best_path)
             self.replan_path = False
         else:
