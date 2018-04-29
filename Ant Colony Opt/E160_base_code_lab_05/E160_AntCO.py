@@ -1,5 +1,6 @@
 import math
 import random
+import time
 import numpy as np
 from E160_state import *
 
@@ -22,7 +23,7 @@ class E160_AntCO:
        #4/26 10am fixed grid call
        self.grid = environment.grid#AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
-
+       self.time_taken = 0
        self.num_ants = 4
        self.max_iteration = 3
 
@@ -223,6 +224,7 @@ class E160_AntCO:
     
         #initialize the path
         current_path = []
+        startTime = 0 
         while(iteration <= self.max_iteration):
             #iterate ants until a path is found
             for ant in self.ants:
@@ -287,6 +289,8 @@ class E160_AntCO:
                     #TODO: update to take in probRow and probCol 4/28 
                     #print "current state before new state", current_state.x, current_state.y
                     previous_state = current_state
+                    previous_cell = current_cell
+                    previous_cell.pheromone = 0.001
                     [new_x,new_y] = self.setNewState(current_state, moveRow, moveCol)
                    
                     #TODO: update setLastMove() to take in probRow and probCol 4/28
