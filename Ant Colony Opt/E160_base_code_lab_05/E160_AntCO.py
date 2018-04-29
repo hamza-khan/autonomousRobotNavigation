@@ -94,7 +94,13 @@ class E160_AntCO:
 
     def SetKnownStartPos(self, i):
         # add student code here 
-        probability = [0, 0, 0, 0]
+        #4/28 changed probability to empty because intialized later
+        probability = []
+        for row in range(3):
+            column = []
+            for col in range(3):
+                column.append(0) 
+            probability.append(column)
         path = []
         current_state = E160_state()
         current_state.set_state(0,0,0)
@@ -116,10 +122,8 @@ class E160_AntCO:
         beta = 0.4
 
         for row in range(3):
-            column = []
             for col in range(3):
-                column.append(0) 
-            ant.probability.append(column)    
+                ant.probability[row][col] = 0 
         
         current_state = ant.current_state
         total_neighbor_pheromones = 0
@@ -155,7 +159,7 @@ class E160_AntCO:
                 total_neighbor_pheromones += c.pheromone
                 self.grid.modCellInGrid(c, row, col)
         
-        print "ant prob", ant.probability
+        #print "ant prob", ant.probability
         for row in RowColList:
             # 4/26 10:25am changed for loop to be functional
             #entireRow = ant.probability[row]
@@ -205,36 +209,61 @@ class E160_AntCO:
             #iterate ants until a path is found
             for ant in self.ants:
 
-                #TODO: make last move work
-                lastMove = 0
+                #TODO: make last move work. 
+                #4/28 updated to make lastMove with row and col
+                lastRow = 0
+                lastCol = 0
+                lastMove = lastRow, lastCol
                 path_found = False
+                counter = 0
                 while (path_found == False):
                     #Find current cell
                     current_state = ant.current_state
                     current_x = current_state.x
                     current_y = current_state.y
+
+                    print "current state", current_x, current_y
+                    print "goal state", goal_state.x, goal_state.y
                     # 4/25 3:42pm corrected call of returnRowCAll
                     # 4/25 11:03pm cast row col as ints
                     [row, col] = self.grid.returnRowCol(current_x,current_y)
+                    print "row col", row,col
                     current_cell = self.grid.getCell(int(row),int(col))
+                    #print "row col", current_cell.row, current_cell.col
 
                     #update ant motion probability
                     self.MoveProbability(ant, goal_state)
-
+                    print "ant probability", ant.probability
                     #determine best direction
-                    ant.probability[lastMove] = 0
-
+                    ant.probability[lastRow][lastCol] = 0
+                    print "yoyoy"
                     #TODO: max of 2D array and save direction
-                    nextMoveDirection = ant.probability.index(max(ant.probability))
+                    #nextMoveDirection = ant.probability.index(max(ant.probability))
+                    #4/28 9:47am updated to deal with array 
+                    moveRow = 0
+                    moveCol = 0
+                    maxProb = 0
+                    #RowColList = [-1, 0, 1]
+                    for probRow in range(3):
+                        for probCol in range(3):
+                            if ant.probability[probRow][probCol] > maxProb:
+                                moveRow = probRow
+                                moveCol = probCol
+                                maxProb = ant.probability[probRow][probCol]
+
                     
                     #set up next state and save lastMove
-                    [new_x,new_y] = self.setNewState(current_state, nextMoveDirection)
-                    
-                    #TODO: update setLastMove()
-                    lastMove = self.setLastMove(current_state, nextMoveDirection)
+                    #TODO: update to take in probRow and probCol 4/28 
+                    print "current state before new state", current_state.x, current_state.y
+                    [new_x,new_y] = self.setNewState(current_state, probRow, probCol)
+                   
+                    #TODO: update setLastMove() to take in probRow and probCol 4/28
+                    [lastRow, lastCol] = self.setLastMove(current_state, probRow, probCol)
 
                     #add current cell to path 
                     ant.path.append(current_cell)
+
+                    print "current position", current_cell.row, current_cell.col
 
                     #check for complete path
                     if (current_state.x == goal_state.x) & (current_state.y == goal_state.y):
@@ -253,10 +282,15 @@ class E160_AntCO:
                         print "path found"
                             
                     #Move to next state if no path
+                    print "new state", new_x, new_y
                     ant.current_state.x = new_x
                     ant.current_state.y = new_y
                     #TODO:fix theta
 
+                    #print "path"
+                    #counter +=1
+                    if counter==5:
+                        return
                 #a path is found. evaporate pheromones 
                 self.updatePheromones(current_path)
 
@@ -290,59 +324,129 @@ class E160_AntCO:
 
     
     #return new state variables
-    def setNewState(self, current_state, nextMoveDirection):
+    def setNewState(self, current_state, probRow, probCol):
         x = current_state.x            
         y = current_state.y
         theta = current_state.theta
+
+        #print "probRow", probRow
+        #print "probCol", probCol
+        #print "theta", theta
 
         #initialize new row/col
         new_row = 0
         new_col = 0
 
         # 4?25 3:49pm fixed function call
+        #4/28 updated for probRow and probCol
         [row, col] = self.grid.returnRowCol(x,y)
-        if nextMoveDirection == 0:
-            #go north
-            new_col = col + 1
-            new_row = row
-        if nextMoveDirection == 1:
-            #go east 
-            new_col = col 
-            new_row = row - 1       
-        if nextMoveDirection == 2:
+        #print "row col", row, col
+        #print "x y ", x, y
+
+        #print "stooooooppp"
+        if probRow == 0 & probCol == 0:
+            #go north west 
+            new_col = col - 1
+            new_row = row - 1
+        if probRow == 1 & probCol == 0: 
             #go west
+            new_col = col - 1 
+            new_row = row  
+        if probRow == 2 & probCol == 0:
+            #go south west 
+            new_col = col - 1
+            new_row = row + 1
+        if probRow == 2 & probCol == 1: 
+            #go south
             new_col = col 
             new_row = row + 1 
-        if nextMoveDirection == 3:
-            #go south
-            new_col = col - 1
-            new_row = row
+        if probRow == 2 & probCol == 2:
+            #go south east 
+            new_col = col + 1
+            new_row = row + 1
+        if probRow == 1 & probCol == 2: 
+            #go east
+            new_col = col + 1 
+            new_row = row  
+        if probRow == 0 & probCol == 2:
+            #go north east 
+            new_col = col + 1
+            new_row = row - 1
+        if probRow == 0 & probCol == 1: 
+            #go north
+            new_col = col  
+            new_row = row - 1
 
+        # if nextMoveDirection == 1:
+        #     #go east 
+        #     new_col = col 
+        #     new_row = row - 1       
+        # if nextMoveDirection == 2:
+        #     #go west
+        #     new_col = col 
+        #     new_row = row + 1 
+        # if nextMoveDirection == 3:
+        #     #go south
+        #     new_col = col - 1
+        #     new_row = row
+        # print "new row new col", new_row, new_col
         #get new x, y
         new_cell = self.grid.getCell(new_row,new_col)
-        new_x = new_cell.x
-        new_y = new_cell.y
-
+        #print "cell coords", new_cell.row, new_cell.col
+        #new_cell.occupied = True
+        new_x, new_y = new_cell.returnXY()
+        print "new x new y", new_x, new_y
+        print "new row m new col", new_row, new_col
+        #TODO: fixed get the x,y 
+        #new_y = new_cell.y
+        
         return [new_x, new_y]
     
     #returns the next move
-    def setLastMove(self, current_state, nextMoveDirection):
-        if nextMoveDirection == 0:
-            #go north, y+1
-            lastMove = 3
-            y = current_state.y + 1
-
-        if nextMoveDirection == 1:
-            #go east 
-            lastMove = 2
-                    
-        if nextMoveDirection == 2:
-            lastMove = 1
+    #TODO: 4/28 update to match probRow and probCol
+    def setLastMove(self, current_state, probRow, probCol):
         
-        if nextMoveDirection == 3:
-            lastMove = 0
+        if probRow == 0 & probCol == 0:
+            #go north west 
+            [lastRow, lastCol] = [2,2]
+        if probRow == 1 & probCol == 0: 
+            #go west
+            [lastRow, lastCol] = [1,2] 
+        if probRow == 2 & probCol == 0:
+            #go south west 
+            [lastRow, lastCol] = [0,2] 
+        if probRow == 2 & probCol == 1: 
+            #go south
+            [lastRow, lastCol] = [0,1]  
+        if probRow == 2 & probCol == 2:
+            #go south east 
+            [lastRow, lastCol] = [0,0] 
+        if probRow == 1 & probCol == 2: 
+            #go east
+            [lastRow, lastCol] = [1,0]  
+        if probRow == 0 & probCol == 2:
+            #go north east 
+            [lastRow, lastCol] = [2,0] 
+        if probRow == 0 & probCol == 1: 
+            #go north
+            [lastRow, lastCol] = [2,1] 
+       
+        # if nextMoveDirection == 0:
+        #     #go north, y+1
+        #     lastMove = 3
+        #     y = current_state.y + 1
 
-        return lastMove
+        # if nextMoveDirection == 1:
+        #     #go east 
+        #     lastMove = 2
+                    
+        # if nextMoveDirection == 2:
+        #     lastMove = 1
+        
+        # if nextMoveDirection == 3:
+        #     lastMove = 0
+
+        return [lastRow, lastCol]
 
 
     def build_trajectory(self, goal_node):

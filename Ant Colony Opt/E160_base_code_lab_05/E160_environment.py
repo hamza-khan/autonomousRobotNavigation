@@ -13,7 +13,7 @@ class E160_environment:
     def __init__(self):
         self.width = 2.0
         self.height = 1.2
-        self.cell_edge_length = 0.05
+        self.cell_edge_length = 0.1
         self.robot_radius = 0.147/2
         # set up walls, putting top left point first
         self.walls = []
@@ -183,11 +183,16 @@ class E160_environment:
             for row in range(self.numberOfRows()):
                 for col in range(self.numberOfCols()):
                     c = self.getCell(row,col)
-                    x, y = c.returnXY()
-                    [xa,xb,ya,yb] = c.returnCellDim()
+                   
+                    #x, y = c.returnXY()
+                    [xa,ya,xb,yb] = c.returnCellDim(row, col)
                     if y > ya and y < yb:
                         if x > xa and x < xb:
+                            #print "xa, xb, ya, yb", xa, xb, ya, yb
+                            #print "cell x y", c.returnXY()
+                            #print "cell row col", row,col
                             return [row, col]
+                            
         	pass
 
         # def returnRowCol(self, x, y):
@@ -215,9 +220,9 @@ class E160_environment:
                 return x,y
 
             #returns [xa,ya,xb,yb] or [[center][corners]]
-            def returnCellDim(self): 
-                x = ((self.col)*self.cell_edge_length) - self.width/2  + self.cell_edge_length/2
-                y = ((self.row)*self.cell_edge_length) - self.height/2 + self.cell_edge_length/2
+            def returnCellDim(self, row, col): 
+                x = ((col)*self.cell_edge_length) - self.width/2  + self.cell_edge_length/2
+                y = ((row)*self.cell_edge_length) - self.height/2 + self.cell_edge_length/2
                 #change: got rid of +1 from row and col and the edge_length/2
                 xa = x - (self.cell_edge_length/2)
                 xb = x + (self.cell_edge_length/2)
