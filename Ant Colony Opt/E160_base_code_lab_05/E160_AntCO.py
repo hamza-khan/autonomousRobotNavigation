@@ -24,8 +24,8 @@ class E160_AntCO:
        self.grid = environment.grid#AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
        self.time_taken = 0
-       self.num_ants = 4
-       self.max_iteration = 3
+       self.num_ants = 10
+       self.max_iteration = 10
 
        # Constants
        # self.num_y_cell = 10
@@ -39,6 +39,15 @@ class E160_AntCO:
     #    self.grid.initializeGrid()
     #     self.grid.discretizeMap()
     #     self.grid.updateOccupany()
+    def initializePheromones(self):
+        
+        #maxDistance = math.sqrt(math.pow(self.width,2)+math.pow(self.height,2))
+        numCols = self.grid.numberOfCols()
+        numRows = self.grid.numberOfRows()
+        for row in range(numRows):
+            for col in range(numCols):
+                cell = self.grid.getCell(row,col)
+                cell.pheromone = 0.1
 
     # TODO: Update
     #7:23 uncommented this and changed goal_node to goal_state
@@ -57,7 +66,8 @@ class E160_AntCO:
         #[row, col] = self.grid.returnRowCol(x,y)
         #self.current_cell = self.grid.getCell(row,col)
         #self.best_path.append()
-                  
+        #self.grid = self.environment.grid   
+        self.initializePheromones
         return self.AntColonyPathPlanner(goal_state)
 
     def angle_wrap(self, a):
@@ -119,8 +129,8 @@ class E160_AntCO:
     def MoveProbability(self, ant, goal_state):
         # gives the probablities of the Ant moving N, NE, E, SE, S, SW, W, or NW
     
-        alpha = 1
-        beta = 1
+        alpha = 0.5
+        beta = 0.5
 
         for row in range(3):
             for col in range(3):
@@ -331,8 +341,8 @@ class E160_AntCO:
 
                     #print "path"
                     #counter +=1
-                    if counter==20:
-                        return
+                    #if counter==20:
+                        #self.environment.walls.append(E160_wall([0.7, 0.5, .8, 0.5],"horizontal"))
                 #a path is found. evaporate pheromones 
                 self.updatePheromones(current_path)
                 print "updated pheromones"
@@ -359,8 +369,8 @@ class E160_AntCO:
                 
                 cell.pheromone = cell.pheromone*(1-rho)
                 
-                if  cell.DtoGoal < 0.7:
-                    cell.pheromone += (maxDistance - cell.DtoGoal)
+                if  cell.DtoGoal < 0.5:
+                    cell.pheromone += 0.5*(maxDistance - cell.DtoGoal)
                     print cell.pheromone
 
                 self.grid.modCellInGrid(cell, row, col)

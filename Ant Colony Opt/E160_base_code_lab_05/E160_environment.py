@@ -12,19 +12,19 @@ class E160_environment:
     
     def __init__(self):
         self.width = 2.0
-        self.height = 1.2
+        self.height = 2.2
         self.cell_edge_length = 0.05
         self.robot_radius = 0.147/2
         # set up walls, putting top left point first
         self.walls = []
-        self.walls.append(E160_wall([-0.5, 0.3, -0.5, -0.2],"vertical"))
+        self.walls.append(E160_wall([-0.5, 0.1, -0.5, -0.1],"vertical"))
         #self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
-        self.walls.append(E160_wall([-0.5, 0.5, 0.5, 0.5],"horizontal"))
-        # self.walls.append(E160_wall([0.0, -0.5, 0.0, -1.0],"vertical"))
-        # self.walls.append(E160_wall([0.0, -1.0, 1.0, -1.0],"horizontal"))
-        # self.walls.append(E160_wall([0.5, -0.5, 1.0, -0.5],"horizontal"))
-        # self.walls.append(E160_wall([1.0, -0.5, 1.0, -1.0],"vertical"))
-        # self.walls.append(E160_wall([1.0, -1.0, 1.0, -1.5],"vertical"))
+        self.walls.append(E160_wall([-0.1, 0.5, 0.1, 0.5],"horizontal"))
+        self.walls.append(E160_wall([0.0, -0.6, 0.0, -.7],"vertical"))
+        self.walls.append(E160_wall([0.6, -1.0, 1.0, -1.0],"horizontal"))
+        #self.walls.append(E160_wall([0.7, 0.5, .8, 0.5],"horizontal"))
+        #self.walls.append(E160_wall([1.0, -0.5, 1.0, -1.0],"vertical"))
+        #self.walls.append(E160_wall([1.0, -1.0, 1.0, -1.5],"vertical"))
         
         #set up the AntGrid 
         self.grid = self.AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)        
@@ -154,7 +154,7 @@ class E160_environment:
 
         def bufferWallCoordinates(self, wall):
             robotRadius = self.robot_radius
-            bufferScaling = 0 #added a buffer zone scaling factor
+            bufferScaling = 1.5 #added a buffer zone scaling factor
             if wall.slope == "vertical":
                 print "wall.points: ", wall.points
                 xa = wall.points[0] #+ wall.radius
@@ -179,27 +179,27 @@ class E160_environment:
 
         # added a new function for returning row col
         #9:10am 4/26 changed row col function because flooring wasn't working
-        def returnRowCol(self, x, y):
-            for row in range(self.numberOfRows()):
-                for col in range(self.numberOfCols()):
-                    c = self.getCell(row,col)
-                   
-                    #x, y = c.returnXY()
-                    [xa,ya,xb,yb] = c.returnCellDim(row, col)
-                    if y > ya and y < yb:
-                        if x > xa and x < xb:
-                            #print "xa, xb, ya, yb", xa, xb, ya, yb
-                            #print "cell x y", c.returnXY()
-                            #print "cell row col", row,col
-                            return [row, col]
-                            
-        	pass
-
         # def returnRowCol(self, x, y):
-        #     col = math.floor((x + (self.width/2))/self.cell_edge_length )  
-        #     row = math.floor((x + (self.height/2))/self.cell_edge_length )
+        #     for row in range(self.numberOfRows()):
+        #         for col in range(self.numberOfCols()):
+        #             c = self.getCell(row,col)
+                   
+        #             #x, y = c.returnXY()
+        #             [xa,ya,xb,yb] = c.returnCellDim(row, col)
+        #             if y > ya and y < yb:
+        #                 if x > xa and x < xb:
+        #                     #print "xa, xb, ya, yb", xa, xb, ya, yb
+        #                     #print "cell x y", c.returnXY()
+        #                     #print "cell row col", row,col
+        #                     return [row, col]
+                            
+        # 	pass
 
-        #     return row, col
+        def returnRowCol(self, x, y):
+            col = int(math.floor((x + (self.width/2))/self.cell_edge_length ))  
+            row = int(math.floor((y + (self.height/2))/self.cell_edge_length ))
+
+            return row, col
 
         class AntCell:
             """docstring for ClassName"""
