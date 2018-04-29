@@ -107,6 +107,7 @@ class E160_robot:
 
     
     def motion_plan(self):
+        self.replan_path == True
         if (self.replan_path == True):
             # Reset destination
             self.path_counter = 0
@@ -117,7 +118,7 @@ class E160_robot:
             #goal_node = E160_AntCO.Node(self.state_des.x, self.state_des.y)
             #goal_node = E160_AntCO.Node(9, 9, 0.1, 0, [], 0)
             goal_state = self.state_des
-
+            print "replan"
             # Generate path with RRT
             node_indices = self.AntCO.update_plan(self.state_odo, goal_state)
             self.AntCO_build_path(self.best_path)

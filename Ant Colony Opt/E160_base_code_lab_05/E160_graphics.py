@@ -330,8 +330,9 @@ class E160_graphics:
         # add wall
         self.environment.walls.append(E160_wall([0.5, 0.1, 0.5, -0.1],"vertical"))
         
-        #reset goal and call ACO
         for r in self.environment.robots:
+            r.replan_path = True
+            r.robot.motion_plan()
             x_des = float(self.x_des_entry.get())
             y_des = float(self.y_des_entry.get())
             theta_des = float(self.theta_des_entry.get())
