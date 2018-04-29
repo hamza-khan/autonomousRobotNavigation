@@ -1,6 +1,7 @@
 import math
 from Tkinter import *
 from E160_robot import *
+from E160_wall import *
 from PIL import Image, ImageTk
 
 class E160_graphics:
@@ -39,6 +40,9 @@ class E160_graphics:
         # add rotation control slider
         self.rotate_control = Scale(self.bottom_frame, from_=-100, to=100, length  = 400,label="Rotate Control",tickinterval=50, orient=HORIZONTAL)
         self.rotate_control.pack(side=RIGHT)
+
+        #add new wall button
+        self.track_point_button = Button(self.bottom_frame, text="Add Wall", anchor="s", wraplength = 100, command = self.add_wall).pack()
         
         # add track point button
         self.track_point_button = Button(self.bottom_frame, text="Track Point", anchor="s", wraplength=100, command=self.track_point).pack()
@@ -311,7 +315,29 @@ class E160_graphics:
             theta_des = float(self.theta_des_entry.get())
             r.state_des.set_state(x_des,y_des,theta_des)
             r.point_tracked = False 
+
+    def add_wall(self):
+        self.environment.control_mode = "AUTONOMOUS CONTROL MODE"
+                
+        # update sliders on gui
+        self.forward_control.set(0)
+        self.rotate_control.set(0)
+        self.last_forward_control = 0
+        self.last_rotate_control = 0
+        self.R = 0
+        self.L = 0
         
+        # add wall
+        self.environment.walls.append(E160_wall([0.5, 0.1, 0.5, -0.1],"vertical"))
+        
+        #reset goal and call ACO
+        for r in self.environment.robots:
+            x_des = float(self.x_des_entry.get())
+            y_des = float(self.y_des_entry.get())
+            theta_des = float(self.theta_des_entry.get())
+            r.state_des.set_state(x_des,y_des,theta_des)
+            r.point_tracked = False 
+
     def stop(self):
         self.environment.control_mode = "MANUAL CONTROL MODE"
         
@@ -400,6 +426,8 @@ class E160_graphics:
         self.draw_particles(self.environment.robots[0])
         
         # draw sensors
+
+        self.draw_square(self.environment.walls[-1].points)
         
         # draw path
         #self.draw_rrt()

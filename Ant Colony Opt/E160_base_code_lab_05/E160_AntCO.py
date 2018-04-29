@@ -3,6 +3,7 @@ import random
 import time
 import numpy as np
 from E160_state import *
+from E160_wall import *
 
 class E160_AntCO:
 
@@ -67,7 +68,8 @@ class E160_AntCO:
         #self.current_cell = self.grid.getCell(row,col)
         #self.best_path.append()
         #self.grid = self.environment.grid   
-        self.initializePheromones
+        self.initializePheromones()
+        self.environment.grid.initializeGrid()
         return self.AntColonyPathPlanner(goal_state)
 
     def angle_wrap(self, a):
@@ -76,6 +78,16 @@ class E160_AntCO:
         while a < -math.pi:
             a = a + 2*math.pi
         return a
+
+    def updateObstacles(self):
+        self.walls.append(E160_wall([0.5, 0.1, 0.5, -0.1],"vertical"))
+        #self.grid.modCellInGrid(cell, row, col)
+        #c = self.grid.getCell(0, 19)
+        #c.occupied = True
+        #[xa,ya,xb,yb] = c.returnCellDim(0, 19)
+        #points = [xa,yb,xb,yb,xb,ya,xa,ya]
+        #wall_points = self.scale_points(points, self.scale)
+        #points = self.canvas.create_polygon(wall_points, fill='red')
 
     def InitializeAnts(self):
         ''' Populate self.ants with random Particle 
@@ -220,7 +232,8 @@ class E160_AntCO:
 
     # TODO: Update
     def AntColonyPathPlanner(self, goal_state):
-        # Start ants at nest 
+        # Start ants at nest              
+        
         self.InitializeAnts()
         #print "initial goal state" , goal_state.x, goal_state.y
         tempX, tempY = self.grid.returnRowCol(goal_state.x, goal_state.y)
@@ -339,9 +352,10 @@ class E160_AntCO:
                     ant.current_state.y = new_y
                     #TODO:fix theta
 
-                    #print "path"
-                    #counter +=1
-                    #if counter==20:
+                    # #print "path"
+                    # counter +=1
+                    # if counter==20:
+                    #     self.updateObstacles() 
                         #self.environment.walls.append(E160_wall([0.7, 0.5, .8, 0.5],"horizontal"))
                 #a path is found. evaporate pheromones 
                 self.updatePheromones(current_path)
@@ -349,6 +363,8 @@ class E160_AntCO:
 
             #iterate paths
             iteration += 1
+            #if iteration == self.max_iteration/2:
+            #    self.updateObstacles()
 
         
             print "success!!"

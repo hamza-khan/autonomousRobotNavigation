@@ -14,8 +14,8 @@ def main():
    
     # instantiate robot navigation classes
     environment = E160_environment()
-    
     graphics = E160_graphics(environment)
+
 
 
     #InitializeGrid()
@@ -29,6 +29,8 @@ def main():
         
         # update robots
         environment.update_robots(deltaT)
+        
+        #environment = E160_environment()
         
         # log all the robot data
         environment.log_data()
