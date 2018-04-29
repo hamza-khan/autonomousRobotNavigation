@@ -118,8 +118,8 @@ class E160_AntCO:
     def MoveProbability(self, ant, goal_state):
         # gives the probablities of the Ant moving N, NE, E, SE, S, SW, W, or NW
     
-        alpha = 0.6
-        beta = 0.4
+        alpha = 1
+        beta = 1
 
         for row in range(3):
             for col in range(3):
@@ -229,11 +229,18 @@ class E160_AntCO:
 
                 #TODO: make last move work. 
                 #4/28 updated to make lastMove with row and col
-                lastRow = 1
-                lastCol = 1
+                current_state = ant.current_state
+                current_x = current_state.x
+                current_y = current_state.y
+
+                [row, col] = self.grid.returnRowCol(current_x,current_y)
+                lastRow = row
+                lastCol = col
                 lastMove = lastRow, lastCol
                 path_found = False
                 counter = 0
+                currentRow = 1
+                currentCol = 1
                 while (path_found == False):
                     #Find current cell
                     current_state = ant.current_state
@@ -255,7 +262,9 @@ class E160_AntCO:
                     self.MoveProbability(ant, goal_state)
                     #print "ant probability", ant.probability
                     #determine best direction
-                    ant.probability[lastRow][lastCol] = 0
+                    print "last Row Col", lastRow, lastCol
+                    print "diffProb", abs(lastRow-row-1), abs(lastCol-col)+1
+                    ant.probability[abs((lastRow-row)-1)][abs(lastCol-col)+1] = 0.00001
                     #print "yoyoy"
                     #TODO: max of 2D array and save direction
                     #nextMoveDirection = ant.probability.index(max(ant.probability))
@@ -277,11 +286,15 @@ class E160_AntCO:
                     #set up next state and save lastMove
                     #TODO: update to take in probRow and probCol 4/28 
                     #print "current state before new state", current_state.x, current_state.y
+                    previous_state = current_state
                     [new_x,new_y] = self.setNewState(current_state, moveRow, moveCol)
                    
                     #TODO: update setLastMove() to take in probRow and probCol 4/28
-                    [lastRow, lastCol] = self.setLastMove(current_state, moveRow, moveCol)
-
+                    #[lastRow, lastCol] = self.setLastMove(current_state, moveRow, moveCol)
+                    [lastRow, lastCol] = self.grid.returnRowCol(previous_state.x, previous_state.y)
+                    [currentRow, currentCol] = self.grid.returnRowCol(current_state.x, current_state.y)
+                    
+                    
                     #add current cell to path 
                     ant.path.append(current_cell)
 
@@ -331,12 +344,19 @@ class E160_AntCO:
 
     def updatePheromones(self, current_path):
         rho = 0.1
+        maxDistance = math.sqrt(math.pow(self.width,2)+math.pow(self.height,2))
         numCols = self.grid.numberOfCols()
         numRows = self.grid.numberOfRows()
         for row in range(numRows):
             for col in range(numCols):
                 cell = self.grid.getCell(row,col)
+                
                 cell.pheromone = cell.pheromone*(1-rho)
+                
+                if  cell.DtoGoal < 0.7:
+                    cell.pheromone += (maxDistance - cell.DtoGoal)
+                    print cell.pheromone
+
                 self.grid.modCellInGrid(cell, row, col)
 
         
@@ -445,28 +465,34 @@ class E160_AntCO:
         [lastRow, lastCol] = [0,0]
         if probRow == 0 & probCol == 0:
             #go north west 
-            [lastRow, lastCol] = [2,2]
-        if probRow == 1 & probCol == 0: 
+            #[lastRow, lastCol] = [2,2]
+            [lastRow, lastCol] = [-1, 1]
+        elif probRow == 1 & probCol == 0: 
             #go west
-            [lastRow, lastCol] = [1,2] 
-        if probRow == 2 & probCol == 0:
+            #[lastRow, lastCol] = [1,2] 
+            [lastRow, lastCol] = [0, -1]
+        elif probRow == 2 & probCol == 0:
             #go south west 
-            [lastRow, lastCol] = [0,2] 
-        if probRow == 2 & probCol == 1: 
+            #[lastRow, lastCol] = [0,2] 
+            [lastRow, lastCol] = [0, -1]
+        elif probRow == 2 & probCol == 1: 
             #go south
             [lastRow, lastCol] = [0,1]  
-        if probRow == 2 & probCol == 2:
+        elif probRow == 2 & probCol == 2:
             #go south east 
             [lastRow, lastCol] = [0,0] 
-        if probRow == 1 & probCol == 2: 
+        elif probRow == 1 & probCol == 2: 
             #go east
             [lastRow, lastCol] = [1,0]  
-        if probRow == 0 & probCol == 2:
+        elif probRow == 0 & probCol == 2:
             #go north east 
             [lastRow, lastCol] = [2,0] 
-        if probRow == 0 & probCol == 1: 
+        elif probRow == 0 & probCol == 1: 
             #go north
             [lastRow, lastCol] = [2,1] 
+        else:
+            [lastRow, lastCol] = [1,1]
+        print "lastRow,lastCol", lastRow, lastCol
        
         # if nextMoveDirection == 0:
         #     #go north, y+1
