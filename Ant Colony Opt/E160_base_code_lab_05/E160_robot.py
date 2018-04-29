@@ -326,7 +326,8 @@ class E160_robot:
 
     def make_headers(self):
         f = open(self.file_name, 'a+')
-        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('R1', 'R2', 'R3', 'RW', 'LW'))
+        #f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('R1', 'R2', 'R3', 'RW', 'LW'))
+        f.write('{0} {1:^1} \n'.format('time_taken','path_length'))
         f.close()
 
         
@@ -335,8 +336,8 @@ class E160_robot:
         f = open(self.file_name, 'a+')
         
         # edit this line to have data logging of the data you care about
-        data = [str(x) for x in [1,2,3,4,5]]
-        
+        #data = [str(x) for x in [1,2,3,4,5]]
+        data = [str(x) for x in [self.AntCO.time_taken ,len(self.AntCO.best_path)]]
         f.write(' '.join(data) + '\n')
         f.close()
         

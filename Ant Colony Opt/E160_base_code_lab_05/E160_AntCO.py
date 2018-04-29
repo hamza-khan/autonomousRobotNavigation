@@ -224,7 +224,7 @@ class E160_AntCO:
     
         #initialize the path
         current_path = []
-        startTime = 0 
+        startTime = time.time() 
         while(iteration <= self.max_iteration):
             #iterate ants until a path is found
             for ant in self.ants:
@@ -243,6 +243,7 @@ class E160_AntCO:
                 counter = 0
                 currentRow = 1
                 currentCol = 1
+            
                 while (path_found == False):
                     #Find current cell
                     current_state = ant.current_state
@@ -343,7 +344,8 @@ class E160_AntCO:
             print "success!!"
             #print self.best_path
         # return the best path
-
+        endTime = time.time()
+        self.time_taken = endTime - startTime
         return self.best_path
 
     def updatePheromones(self, current_path):
