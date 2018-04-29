@@ -119,7 +119,7 @@ class E160_AntCO:
         # gives the probablities of the Ant moving N, NE, E, SE, S, SW, W, or NW
     
         alpha = 0.6
-        beta = 0.4
+        beta = 0.8
 
         for row in range(3):
             for col in range(3):
@@ -166,13 +166,18 @@ class E160_AntCO:
             for col in RowColList:
                 # 4/25 3:50 pm fixed function call
                 c = self.grid.getCell(current_row + row, current_col + col)
+               # print "ant prob row col", row, col
 
                 # 4/25 3:51 pm added check for occupancy
                 if c.occupied == True:
-                    ant.probability[row][col] = 0
+                    ant.probability[row+1][col+1] = 0
                 else:
-                    ant.probability[row][col] = math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta) / (total_neighbor_dist*total_neighbor_pheromones)
+                    ant.probability[row+1][col+1] = (math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta)) / (total_neighbor_dist*total_neighbor_pheromones)
 
+
+        #to prevent it getting stuck in its current state
+
+        ant.probability[1][1] = 0
 
 
         # Hurestic information
@@ -198,11 +203,16 @@ class E160_AntCO:
     def AntColonyPathPlanner(self, goal_state):
         # Start ants at nest 
         self.InitializeAnts()
-
+        print "initial goal state" , goal_state.x, goal_state.y
+        tempX, tempY = self.grid.returnRowCol(goal_state.x, goal_state.y)
+        print "temp x and y", tempX, tempY
+        goal_cell = self.grid.getCell(tempX, tempY)
+        goal_state.x, goal_state.y = goal_cell.returnXY()
+        print "cell goal state", goal_state.x, goal_state.y
         # establish criteria for stopping
         path_found = False
         iteration = 0
-
+    
         #initialize the path
         current_path = []
         while(iteration <= self.max_iteration):
@@ -211,8 +221,8 @@ class E160_AntCO:
 
                 #TODO: make last move work. 
                 #4/28 updated to make lastMove with row and col
-                lastRow = 0
-                lastCol = 0
+                lastRow = 1
+                lastCol = 1
                 lastMove = lastRow, lastCol
                 path_found = False
                 counter = 0
@@ -250,15 +260,16 @@ class E160_AntCO:
                                 moveRow = probRow
                                 moveCol = probCol
                                 maxProb = ant.probability[probRow][probCol]
+                                print "max prob", maxProb
 
                     
                     #set up next state and save lastMove
                     #TODO: update to take in probRow and probCol 4/28 
                     print "current state before new state", current_state.x, current_state.y
-                    [new_x,new_y] = self.setNewState(current_state, probRow, probCol)
+                    [new_x,new_y] = self.setNewState(current_state, moveRow, moveCol)
                    
                     #TODO: update setLastMove() to take in probRow and probCol 4/28
-                    [lastRow, lastCol] = self.setLastMove(current_state, probRow, probCol)
+                    [lastRow, lastCol] = self.setLastMove(current_state, moveRow, moveCol)
 
                     #add current cell to path 
                     ant.path.append(current_cell)
@@ -280,6 +291,8 @@ class E160_AntCO:
                         current_path = ant.path
                         path_found = True
                         print "path found"
+                        break
+
                             
                     #Move to next state if no path
                     print "new state", new_x, new_y
@@ -288,11 +301,12 @@ class E160_AntCO:
                     #TODO:fix theta
 
                     #print "path"
-                    #counter +=1
+                    counter +=1
                     if counter==5:
                         return
                 #a path is found. evaporate pheromones 
                 self.updatePheromones(current_path)
+                print "updated pheromones"
 
             #iterate paths
             iteration += 1
@@ -306,10 +320,10 @@ class E160_AntCO:
 
     def updatePheromones(self, current_path):
         roe = 5
-        numCols = self.grid.numberOfCols
-        numRows = self.grid.numberOfRows
-        for row in numRows:
-            for col in numCols:
+        numCols = self.grid.numberOfCols()
+        numRows = self.grid.numberOfRows()
+        for row in range(numRows):
+            for col in range(numCols):
                 cell = self.grid.getCell(row,col)
                 cell.pheromone = cell.pheromone*(1-roe)
                 self.grid.modCellInGrid(cell, row, col)
@@ -329,8 +343,8 @@ class E160_AntCO:
         y = current_state.y
         theta = current_state.theta
 
-        #print "probRow", probRow
-        #print "probCol", probCol
+        print "probRow", probRow
+        print "probCol", probCol
         #print "theta", theta
 
         #initialize new row/col
@@ -343,39 +357,50 @@ class E160_AntCO:
         #print "row col", row, col
         #print "x y ", x, y
 
-        #print "stooooooppp"
-        if probRow == 0 & probCol == 0:
+        print "stooooooppp"
+        if probRow == 0 and probCol == 0:
             #go north west 
+            print "north west"
             new_col = col - 1
-            new_row = row - 1
-        if probRow == 1 & probCol == 0: 
+            new_row = row + 1
+        elif probRow == 1 and probCol == 0: 
             #go west
+            print "west"
             new_col = col - 1 
             new_row = row  
-        if probRow == 2 & probCol == 0:
+        elif probRow == 2 and probCol == 0:
             #go south west 
+            print "south west"
             new_col = col - 1
-            new_row = row + 1
-        if probRow == 2 & probCol == 1: 
+            new_row = row - 1
+        elif probRow == 2 and probCol == 1: 
             #go south
+            print "south"
             new_col = col 
-            new_row = row + 1 
-        if probRow == 2 & probCol == 2:
+            new_row = row - 1 
+        elif probRow == 2 and probCol == 2:
             #go south east 
+            print "south east"
             new_col = col + 1
-            new_row = row + 1
-        if probRow == 1 & probCol == 2: 
+            new_row = row - 1
+        elif probRow == 1 and probCol == 2: 
             #go east
+            print "east"
             new_col = col + 1 
             new_row = row  
-        if probRow == 0 & probCol == 2:
+        elif probRow == 0 and probCol == 2:
             #go north east 
+            print "north east"
             new_col = col + 1
-            new_row = row - 1
-        if probRow == 0 & probCol == 1: 
+            new_row = row + 1
+        elif probRow == 0 and probCol == 1: 
             #go north
+            print "north"
             new_col = col  
             new_row = row - 1
+        else:
+            new_row = row
+            new_col = col
 
         # if nextMoveDirection == 1:
         #     #go east 
@@ -392,7 +417,8 @@ class E160_AntCO:
         # print "new row new col", new_row, new_col
         #get new x, y
         new_cell = self.grid.getCell(new_row,new_col)
-        #print "cell coords", new_cell.row, new_cell.col
+        print "cell raw coords", new_row,new_col
+        print "cell coords", new_cell.row, new_cell.col
         #new_cell.occupied = True
         new_x, new_y = new_cell.returnXY()
         print "new x new y", new_x, new_y
@@ -405,7 +431,7 @@ class E160_AntCO:
     #returns the next move
     #TODO: 4/28 update to match probRow and probCol
     def setLastMove(self, current_state, probRow, probCol):
-        
+        [lastRow, lastCol] = [0,0]
         if probRow == 0 & probCol == 0:
             #go north west 
             [lastRow, lastCol] = [2,2]
