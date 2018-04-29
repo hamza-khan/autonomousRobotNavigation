@@ -14,7 +14,7 @@ class E160_AntCO:
        # self.state = E160_state()
        
        # 4/25 3:30 pm added the necessary constants from enviornment to instate self.grid
-       self.cell_edge_length = 0.1
+       self.cell_edge_length = 0.05
        self.width = environment.width
        self.height = environment.height
        self.walls = environment.walls
@@ -23,8 +23,8 @@ class E160_AntCO:
        self.grid = environment.grid#AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
 
-       self.num_ants = 10
-       self.max_iteration = 10
+       self.num_ants = 4
+       self.max_iteration = 3
 
        # Constants
        # self.num_y_cell = 10
@@ -119,7 +119,7 @@ class E160_AntCO:
         # gives the probablities of the Ant moving N, NE, E, SE, S, SW, W, or NW
     
         alpha = 0.6
-        beta = 0.8
+        beta = 0.4
 
         for row in range(3):
             for col in range(3):
@@ -146,35 +146,43 @@ class E160_AntCO:
         current_cell =  self.grid.getCell(current_row, current_col)
         goal_cell = self.grid.getCell(current_row, current_col)
 
-        RowColList = [-1, 0, 1]
+        #print "goal cell", goal_row, goal_col
 
+        RowColList = [-1, 0, 1]
+        negativeRowColList = [1, 0, -1]
         for row in RowColList:
             for col in RowColList:
                 # 4/25 3:38 pm fixed a bug in calling of getCell (changed from minus to plus)
                 c = self.grid.getCell(current_row+row, current_col+col)
                 [x, y] = c.returnXY()
                 distance_to_goal = math.sqrt(math.pow(goal_x-x,2)+math.pow(goal_y-y,2))
+                #print current_row+row, current_col+col
+                #print "distance_to_goal", distance_to_goal
                 c.DtoGoal = distance_to_goal
                 total_neighbor_dist += distance_to_goal
                 total_neighbor_pheromones += c.pheromone
                 self.grid.modCellInGrid(c, row, col)
         
         #print "ant prob", ant.probability
-        for row in RowColList:
+        for row in negativeRowColList:
             # 4/26 10:25am changed for loop to be functional
             #entireRow = ant.probability[row]
             for col in RowColList:
                 # 4/25 3:50 pm fixed function call
                 c = self.grid.getCell(current_row + row, current_col + col)
-               # print "ant prob row col", row, col
+               #print "ant prob row col", row, col
 
                 # 4/25 3:51 pm added check for occupancy
                 if c.occupied == True:
-                    ant.probability[row+1][col+1] = 0
+                    ant.probability[abs(row-1)][col+1] = 0
+                elif c.DtoGoal == 0.0:
+                    ant.probability[abs(row-1)][col+1] = 100
                 else:
-                    ant.probability[row+1][col+1] = (math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, beta)) / (total_neighbor_dist*total_neighbor_pheromones)
-
-
+                    #print c.pheromone, c.DtoGoal,total_neighbor_dist*total_neighbor_pheromones
+                    ant.probability[abs(row-1)][col+1] = (math.pow(c.pheromone, alpha) * math.pow(c.DtoGoal, -beta)) / (total_neighbor_dist*total_neighbor_pheromones)
+                
+                #testCell = self.grid.getCell(current_row + 1, current_col - 1)
+                #print "specific prob", (math.pow(testCell.pheromone, alpha) * math.pow(testCell.DtoGoal, -beta)) / (total_neighbor_dist*total_neighbor_pheromones)
         #to prevent it getting stuck in its current state
 
         ant.probability[1][1] = 0
@@ -203,9 +211,9 @@ class E160_AntCO:
     def AntColonyPathPlanner(self, goal_state):
         # Start ants at nest 
         self.InitializeAnts()
-        print "initial goal state" , goal_state.x, goal_state.y
+        #print "initial goal state" , goal_state.x, goal_state.y
         tempX, tempY = self.grid.returnRowCol(goal_state.x, goal_state.y)
-        print "temp x and y", tempX, tempY
+        #print "temp x and y", tempX, tempY
         goal_cell = self.grid.getCell(tempX, tempY)
         goal_state.x, goal_state.y = goal_cell.returnXY()
         print "cell goal state", goal_state.x, goal_state.y
@@ -232,21 +240,23 @@ class E160_AntCO:
                     current_x = current_state.x
                     current_y = current_state.y
 
-                    print "current state", current_x, current_y
-                    print "goal state", goal_state.x, goal_state.y
+                    #print "current state", current_x, current_y
+                    #print "goal state", goal_state.x, goal_state.y
                     # 4/25 3:42pm corrected call of returnRowCAll
                     # 4/25 11:03pm cast row col as ints
                     [row, col] = self.grid.returnRowCol(current_x,current_y)
-                    print "row col", row,col
+                    #print "row col", row,col
                     current_cell = self.grid.getCell(int(row),int(col))
                     #print "row col", current_cell.row, current_cell.col
 
+                    
+
                     #update ant motion probability
                     self.MoveProbability(ant, goal_state)
-                    print "ant probability", ant.probability
+                    #print "ant probability", ant.probability
                     #determine best direction
                     ant.probability[lastRow][lastCol] = 0
-                    print "yoyoy"
+                    #print "yoyoy"
                     #TODO: max of 2D array and save direction
                     #nextMoveDirection = ant.probability.index(max(ant.probability))
                     #4/28 9:47am updated to deal with array 
@@ -260,12 +270,13 @@ class E160_AntCO:
                                 moveRow = probRow
                                 moveCol = probCol
                                 maxProb = ant.probability[probRow][probCol]
-                                print "max prob", maxProb
+                     #           print "max prob", maxProb
 
-                    
+                    #print "current cell d2g", current_cell.DtoGoal
+
                     #set up next state and save lastMove
                     #TODO: update to take in probRow and probCol 4/28 
-                    print "current state before new state", current_state.x, current_state.y
+                    #print "current state before new state", current_state.x, current_state.y
                     [new_x,new_y] = self.setNewState(current_state, moveRow, moveCol)
                    
                     #TODO: update setLastMove() to take in probRow and probCol 4/28
@@ -274,7 +285,7 @@ class E160_AntCO:
                     #add current cell to path 
                     ant.path.append(current_cell)
 
-                    print "current position", current_cell.row, current_cell.col
+                    #print "current position", current_cell.row, current_cell.col
 
                     #check for complete path
                     if (current_state.x == goal_state.x) & (current_state.y == goal_state.y):
@@ -295,14 +306,14 @@ class E160_AntCO:
 
                             
                     #Move to next state if no path
-                    print "new state", new_x, new_y
+                    #print "new state", new_x, new_y
                     ant.current_state.x = new_x
                     ant.current_state.y = new_y
                     #TODO:fix theta
 
                     #print "path"
-                    counter +=1
-                    if counter==5:
+                    #counter +=1
+                    if counter==20:
                         return
                 #a path is found. evaporate pheromones 
                 self.updatePheromones(current_path)
@@ -312,20 +323,20 @@ class E160_AntCO:
             iteration += 1
 
         
-            print "sucess!!"
-            print self.best_path
+            print "success!!"
+            #print self.best_path
         # return the best path
 
         return self.best_path
 
     def updatePheromones(self, current_path):
-        roe = 5
+        rho = 0.1
         numCols = self.grid.numberOfCols()
         numRows = self.grid.numberOfRows()
         for row in range(numRows):
             for col in range(numCols):
                 cell = self.grid.getCell(row,col)
-                cell.pheromone = cell.pheromone*(1-roe)
+                cell.pheromone = cell.pheromone*(1-rho)
                 self.grid.modCellInGrid(cell, row, col)
 
         
@@ -343,8 +354,8 @@ class E160_AntCO:
         y = current_state.y
         theta = current_state.theta
 
-        print "probRow", probRow
-        print "probCol", probCol
+        #print "probRow", probRow
+        #print "probCol", probCol
         #print "theta", theta
 
         #initialize new row/col
@@ -357,7 +368,7 @@ class E160_AntCO:
         #print "row col", row, col
         #print "x y ", x, y
 
-        print "stooooooppp"
+        #print "stooooooppp"
         if probRow == 0 and probCol == 0:
             #go north west 
             print "north west"
@@ -397,7 +408,7 @@ class E160_AntCO:
             #go north
             print "north"
             new_col = col  
-            new_row = row - 1
+            new_row = row + 1
         else:
             new_row = row
             new_col = col
@@ -417,12 +428,12 @@ class E160_AntCO:
         # print "new row new col", new_row, new_col
         #get new x, y
         new_cell = self.grid.getCell(new_row,new_col)
-        print "cell raw coords", new_row,new_col
-        print "cell coords", new_cell.row, new_cell.col
+        #print "cell raw coords", new_row,new_col
+        #print "cell coords", new_cell.row, new_cell.col
         #new_cell.occupied = True
         new_x, new_y = new_cell.returnXY()
-        print "new x new y", new_x, new_y
-        print "new row m new col", new_row, new_col
+        #print "new x new y", new_x, new_y
+        #print "new row m new col", new_row, new_col
         #TODO: fixed get the x,y 
         #new_y = new_cell.y
         

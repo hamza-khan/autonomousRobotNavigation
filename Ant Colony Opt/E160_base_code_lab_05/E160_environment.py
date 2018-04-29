@@ -13,11 +13,11 @@ class E160_environment:
     def __init__(self):
         self.width = 2.0
         self.height = 1.2
-        self.cell_edge_length = 0.1
+        self.cell_edge_length = 0.05
         self.robot_radius = 0.147/2
         # set up walls, putting top left point first
         self.walls = []
-        self.walls.append(E160_wall([-0.5, 0.5, -0.5, -0.5],"vertical"))
+        self.walls.append(E160_wall([-0.5, 0.5, -0.5, -0.2],"vertical"))
         #self.walls.append(E160_wall([0.5, 0.5, 0.5, -0.5],"vertical"))
         self.walls.append(E160_wall([-0.5, 0.5, 0.5, 0.5],"horizontal"))
         # self.walls.append(E160_wall([0.0, -0.5, 0.0, -1.0],"vertical"))

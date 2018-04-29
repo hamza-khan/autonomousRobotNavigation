@@ -132,7 +132,7 @@ class E160_graphics:
                 if col == grid.numberOfCols()-1:
                     gridRight.append(cell.returnXY())
                 if cell.occupied:
-                    [xa,ya,xb,yb] = cell.returnCellDim()
+                    [xa,ya,xb,yb] = cell.returnCellDim(row,col)
                     self.draw_square([xa,yb,xb,yb,xb,ya,xa,ya])
                    # print [xa, xb, ya, yb]
                 
@@ -178,11 +178,14 @@ class E160_graphics:
             best_path = r.AntCO.best_path
             grid = self.environment.grid
             for i in range(len(best_path) - 1):
-                next_node = best_path[i+1]
-                current_node = best_path[i]
+                next_cell = best_path[i+1]
+                current_cell = best_path[i]
 
-                current_point = self.scale_points([current_node.x, current_node.y], self.scale)
-                next_point = self.scale_points([next_node.x, next_node.y], self.scale)
+                current_x, current_y = current_cell.returnXY()
+                next_x, next_y = next_cell.returnXY()
+
+                current_point = self.scale_points([current_x, current_y], self.scale)
+                next_point = self.scale_points([next_x, next_y], self.scale)
                 self.path.append(self.canvas.create_line(current_point, next_point, fill = "red"))
 
     def draw_antPaths(self):
@@ -193,12 +196,18 @@ class E160_graphics:
                 
             for path in allPaths:
                 for i in range(len(path) - 1):
-                    next_node = path[i+1]
-                    current_node = path[i]
+                    next_cell = path[i+1]
+                    current_cell = path[i]
 
-                    current_point = self.scale_points([current_node.x, current_node.y], self.scale)
-                    next_point = self.scale_points([next_node.x, next_node.y], self.scale)
-                    self.path.append(self.canvas.create_line(current_point, next_point, fill = "grey"))
+                    #print "current_cell", current_cell
+
+                    current_x, current_y = current_cell.returnXY()
+                    next_x, next_y = next_cell.returnXY()
+
+                    current_point = self.scale_points([current_x, current_y], self.scale)
+                    next_point = self.scale_points([next_x, next_y], self.scale)
+                    self.path.append(self.canvas.create_line(current_point, next_point, fill = "blue"))
+
     
     def draw_rrt(self):
         if self.drawn_rrt == False:
