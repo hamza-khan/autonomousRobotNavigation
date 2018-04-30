@@ -24,7 +24,6 @@ class E160_AntCO:
        #4/26 10am fixed grid call
        self.grid = environment.grid#AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
-       self.time_taken = 0
        self.num_ants = 10
        self.max_iteration = 10
 
@@ -35,6 +34,13 @@ class E160_AntCO:
        # self.y_grid_cell_size = self.max_x/self.grid_size
        # self.MAX_NODE_NUMBER = 100000
        # self.expansion_range = 0.4
+
+       #LOGGER VARIABLES
+       self.Log_PathTime = []
+       self.Log_PathLength = [] 
+       self.Log_iteration = []
+       self.Log_numAnts = 0
+
 
     #def initializeGrid(self, environment, cell_edge_length, robot_radius):
     #    self.grid.initializeGrid()
@@ -248,6 +254,7 @@ class E160_AntCO:
         #initialize the path
         current_path = []
         startTime = time.time() 
+        self.Log_numAnts = len(self.ants)
         while(iteration <= self.max_iteration):
             #iterate ants until a path is found
             for ant in self.ants:
@@ -315,6 +322,7 @@ class E160_AntCO:
                     previous_state = current_state
                     previous_cell = current_cell
                     previous_cell.pheromone = 0.001
+                    # self.grid.modCellInGrid(previous_cell, previous_cell.row, previous_cell.col)
                     [new_x,new_y] = self.setNewState(current_state, moveRow, moveCol)
                    
                     #TODO: update setLastMove() to take in probRow and probCol 4/28
@@ -342,6 +350,12 @@ class E160_AntCO:
                         #set current path
                         current_path = ant.path
                         path_found = True
+                        endTime_Path = time.time()
+                        timeTaken_path = endTime_Path- startTime
+
+                        self.Log_PathTime.append(timeTaken_path)
+                        self.Log_PathLength.append(len(ant.path))
+                        self.Log_iteration.append(iteration)
                         print "path found"
                         break
 

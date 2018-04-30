@@ -338,7 +338,8 @@ class E160_robot:
     def make_headers(self):
         f = open(self.file_name, 'a+')
         #f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('R1', 'R2', 'R3', 'RW', 'LW'))
-        f.write('{0} {1:^1} \n'.format('time_taken','path_length'))
+        # f.write('{0} {1:^1} \n'.format('time_taken','path_length'))
+        f.write('{0} {1:^1} {2:^1} {3:^1} \n'.format( 'numAnts' ,'iteration' ,'time_path', 'Path_length'))
         f.close()
 
         
@@ -348,9 +349,17 @@ class E160_robot:
         
         # edit this line to have data logging of the data you care about
         #data = [str(x) for x in [1,2,3,4,5]]
-        data = [str(x) for x in [self.AntCO.time_taken ,len(self.AntCO.best_path)]]
-        f.write(' '.join(data) + '\n')
+        # data = [str(x) for x in [self.AntCO.time_taken ,len(self.AntCO.best_path)]]
+        # f.write(' '.join(data) + '\n')
+        # f.close()
+        if len(self.AntCO.Log_PathLength)==0:
+            data = ''
+        else:
+            for i in range(len(self.AntCO.Log_PathLength)):
+                f.write('{0} {1:^1} {2:^1} {3:^1} \n'.format(self.AntCO.Log_numAnts, self.AntCO.Log_iteration[i] ,self.AntCO.Log_PathTime[i], self.AntCO.Log_PathLength[i]))
         f.close()
+        self.AntCO.Log_PathLengthAndTime = []
+
         
         
     def set_manual_control_motors(self, R, L):
