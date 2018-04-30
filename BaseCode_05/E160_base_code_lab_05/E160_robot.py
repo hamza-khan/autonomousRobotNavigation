@@ -270,6 +270,8 @@ class E160_robot:
         error = self.state_error
 
         if (self.state_est.xydist(self.state_curr_dest) < self.min_ptrack_dist_error and abs(error.theta) < self.min_ptrack_ang_error): 
+            print "trajectory", self.trajectory
+            print "path counter", self.path_counter
             self.point_tracked = True
             self.state_curr_dest = self.trajectory[self.path_counter]
             if self.path_counter < len(self.trajectory) - 1:

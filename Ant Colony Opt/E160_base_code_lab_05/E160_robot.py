@@ -63,6 +63,8 @@ class E160_robot:
 
 
         self.trajectory = []
+        self.trajectory.append(self.state_curr_dest)
+       
         self.path_counter = 0
 
         # Path Planner and Particle Filter
@@ -71,7 +73,7 @@ class E160_robot:
         self.AntCO = E160_AntCO(environment, self.state_odo)
         self.best_path = self.AntCO.best_path
         #TODO: build AntCO path instead
-        self.AntCO_build_path(self.best_path)
+        #self.AntCO_build_path(self.best_path)
         # self.build_path([0], self.MP.node_list)
         self.replan_path = False
         
@@ -93,7 +95,7 @@ class E160_robot:
 
         # call motion planner
         self.motion_plan()
-        # self.track_trajectory()
+        self.track_trajectory()
         
 
         # determine new control signals
@@ -115,13 +117,19 @@ class E160_robot:
 
             #7:17pm 4/25 changed goal node to goal state
             # Set goal node
-            #goal_node = E160_AntCO.Node(self.state_des.x, self.state_des.y)
+            #goal_cell = E160_AntCO.Node(self.state_des.x, self.state_des.y)
             #goal_node = E160_AntCO.Node(9, 9, 0.1, 0, [], 0)
             goal_state = self.state_des
             print "replan"
             # Generate path with RRT
-            node_indices = self.AntCO.update_plan(self.state_odo, goal_state)
+            self.best_path = self.AntCO.update_plan(self.state_odo, goal_state)
             self.AntCO_build_path(self.best_path)
+            print "best path", self.best_path
+            print "trajectory", self.trajectory
+            if self.trajectory == []:
+                self.trajectory.append(self.state_curr_dest)
+            print "trajectory", self.trajectory
+
             self.replan_path = False
         else:
             pass
@@ -284,6 +292,8 @@ class E160_robot:
         error = self.state_error
 
         if (self.state_est.xydist(self.state_curr_dest) < self.min_ptrack_dist_error and abs(error.theta) < self.min_ptrack_ang_error): 
+            print "trajectory", self.trajectory
+            print "path counter", self.path_counter 
             self.point_tracked = True
             self.state_curr_dest = self.trajectory[self.path_counter]
             if self.path_counter < len(self.trajectory) - 1:
@@ -399,11 +409,28 @@ class E160_robot:
         return state
 
     def AntCO_build_path(self, best_path):
+        
+        # self.trajectory = []
+        # prev_cell = best_path[0]
+        # prev_cell_x, prev_cell_y = prev_cell.returnXY()
+        # self.trajectory.append(E160_state(prev_cell_x, prev_cell_y, 0))
+        # for index in cell_indices[1:]:
+        #     current_cell = node_list[index]
+        #     prev_node = node_list[index-1]
+        #     desired_angle = -self.angle_wrap(math.atan2(current_node.y -prev_node.y, 
+        #         current_node.x - prev_node.x))
+        #     desired_state = E160_state(current_node.x, current_node.y, 0)
+        #     self.trajectory.append(desired_state)    
+
+
         self.trajectory = []
-        for node in best_path:
-            current_node = node
-            desired_state = E160_state(current_node.x, current_node.y, 0)
+        for cell in best_path:
+            print "in the for loop"
+            current_cell_x, current_cell_y = cell.returnXY() 
+            desired_state = E160_state(current_cell_x, current_cell_y, 0)
             self.trajectory.append(desired_state)
+
+
         # for i in range(len(best_path) - 1):
         #     current_node = best_path[i+1]
         #     prev_node = best_path[i]
