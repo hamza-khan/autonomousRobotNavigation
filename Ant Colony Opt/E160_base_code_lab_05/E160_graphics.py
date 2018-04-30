@@ -149,7 +149,7 @@ class E160_graphics:
             point2 = self.scale_points([x2, y2], self.scale)
             self.canvas.create_line(point1, point2, fill="grey")
 
-        print gridTop
+        # print gridTop
         for i in range(grid.numberOfRows()):
             x1, y1 = gridLeft[i]
             x2, y2 = gridRight[i]
@@ -363,7 +363,7 @@ class E160_graphics:
         robot.state_des.set_state(desired_points[0],desired_points[1],0)
         robot.replan_path = True
         self.drawn_rrt = False
-        print "New desired robot state", robot.state_des.x, robot.state_des.y 
+        # pr int "New desired robot state", robot.state_des.x, robot.state_des.y 
         
         
     def send_robot_commands(self):

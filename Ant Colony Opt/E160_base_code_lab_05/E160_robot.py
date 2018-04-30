@@ -120,15 +120,15 @@ class E160_robot:
             #goal_cell = E160_AntCO.Node(self.state_des.x, self.state_des.y)
             #goal_node = E160_AntCO.Node(9, 9, 0.1, 0, [], 0)
             goal_state = self.state_des
-            print "replan"
+            # print "replan"
             # Generate path with RRT
             self.best_path = self.AntCO.update_plan(self.state_odo, goal_state)
             self.AntCO_build_path(self.best_path)
-            print "best path", self.best_path
-            print "trajectory", self.trajectory
+            # print "best path", self.best_path
+            # print "trajectory", self.trajectory
             if self.trajectory == []:
                 self.trajectory.append(self.state_curr_dest)
-            print "trajectory", self.trajectory
+            # print "trajectory", self.trajectory
 
             self.replan_path = False
         else:
@@ -292,8 +292,8 @@ class E160_robot:
         error = self.state_error
 
         if (self.state_est.xydist(self.state_curr_dest) < self.min_ptrack_dist_error and abs(error.theta) < self.min_ptrack_ang_error): 
-            print "trajectory", self.trajectory
-            print "path counter", self.path_counter 
+            # print "trajectory", self.trajectory
+            # print "path counter", self.path_counter 
             self.point_tracked = True
             self.state_curr_dest = self.trajectory[self.path_counter]
             if self.path_counter < len(self.trajectory) - 1:
@@ -339,7 +339,7 @@ class E160_robot:
         f = open(self.file_name, 'a+')
         #f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} \n'.format('R1', 'R2', 'R3', 'RW', 'LW'))
         # f.write('{0} {1:^1} \n'.format('time_taken','path_length'))
-        f.write('{0} {1:^1} {2:^1} {3:^1} \n'.format( 'numAnts' ,'iteration' ,'time_path', 'Path_length'))
+        f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} {5:^1} {6:^1} \n'.format( 'numAnts' ,'iteration' ,'alpha', 'beta','time_path', 'Path_length', 'total_path_time'))
         f.close()
 
         
@@ -356,7 +356,7 @@ class E160_robot:
             data = ''
         else:
             for i in range(len(self.AntCO.Log_PathLength)):
-                f.write('{0} {1:^1} {2:^1} {3:^1} \n'.format(self.AntCO.Log_numAnts, self.AntCO.Log_iteration[i] ,self.AntCO.Log_PathTime[i], self.AntCO.Log_PathLength[i]))
+                f.write('{0} {1:^1} {2:^1} {3:^1} {4:^1} {5:^1} {6:^1} \n'.format(self.AntCO.Log_numAnts, self.AntCO.Log_iteration[i], self.AntCO.Log_alpha, self.AntCO.Log_beta, self.AntCO.Log_PathTime[i], self.AntCO.Log_PathLength[i], self.AntCO.total_time_taken))
         f.close()
         self.AntCO.Log_PathLengthAndTime = []
 
@@ -434,7 +434,7 @@ class E160_robot:
 
         self.trajectory = []
         for cell in best_path:
-            print "in the for loop"
+            # print "in the for loop"
             current_cell_x, current_cell_y = cell.returnXY() 
             desired_state = E160_state(current_cell_x, current_cell_y, 0)
             self.trajectory.append(desired_state)

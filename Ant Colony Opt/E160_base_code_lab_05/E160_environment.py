@@ -110,9 +110,9 @@ class E160_environment:
         def discretizeMap(self):
             ##access by calling discretizeMap[row][col]
             numRows = self.numberOfRows()
-            print "numrows: ", numRows
+            # print "numrows: ", numRows
             numCols = self.numberOfCols()
-            print "numcols: ", numCols
+            # print "numcols: ", numCols
             for row in range(numRows):
                 rowList = []
                 for col in range(numCols):
@@ -148,7 +148,7 @@ class E160_environment:
                         if x >= xa and x <= xb:
                             if y <= yb and y >= ya: 
                                 cell.occupied = True
-                                print x,y
+                                # print x,y
             pass
 
 
@@ -156,7 +156,7 @@ class E160_environment:
             robotRadius = self.robot_radius
             bufferScaling = 1.5 #added a buffer zone scaling factor
             if wall.slope == "vertical":
-                print "wall.points: ", wall.points
+                # print "wall.points: ", wall.points
                 xa = wall.points[0] #+ wall.radius
                 ya = wall.points[5] #- wall.radius
                 xb = wall.points[2] #- wall.radius

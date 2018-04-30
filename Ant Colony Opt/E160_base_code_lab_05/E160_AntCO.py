@@ -11,7 +11,7 @@ class E160_AntCO:
 
        self.ants = []
        self.best_path = []
-       self.allPaths = []
+       # self.allPaths = []
        self.environment = environment
        # self.state = E160_state()
        
@@ -24,8 +24,8 @@ class E160_AntCO:
        #4/26 10am fixed grid call
        self.grid = environment.grid#AntGrid(self.width, self.height, self.walls, self.cell_edge_length, self.robot_radius)
        # Variables
-       self.num_ants = 10
-       self.max_iteration = 10
+       self.num_ants = 6
+       self.max_iteration = 250
 
        # Constants
        # self.num_y_cell = 10
@@ -40,6 +40,9 @@ class E160_AntCO:
        self.Log_PathLength = [] 
        self.Log_iteration = []
        self.Log_numAnts = 0
+       self.total_time_taken = 0
+       self.Log_alpha = 0
+       self.Log_beta = 0
 
 
     #def initializeGrid(self, environment, cell_edge_length, robot_radius):
@@ -149,6 +152,8 @@ class E160_AntCO:
     
         alpha = 0.5
         beta = 0.5
+        self.Log_alpha = alpha
+        self.Log_beta = beta
 
         for row in range(3):
             for col in range(3):
@@ -246,7 +251,7 @@ class E160_AntCO:
         #print "temp x and y", tempX, tempY
         goal_cell = self.grid.getCell(tempX, tempY)
         goal_state.x, goal_state.y = goal_cell.returnXY()
-        print "cell goal state", goal_state.x, goal_state.y
+        # print "cell goal state", goal_state.x, goal_state.y
         # establish criteria for stopping
         path_found = False
         iteration = 0
@@ -258,7 +263,6 @@ class E160_AntCO:
         while(iteration <= self.max_iteration):
             #iterate ants until a path is found
             for ant in self.ants:
-
                 #TODO: make last move work. 
                 #4/28 updated to make lastMove with row and col
                 current_state = ant.current_state
@@ -295,8 +299,8 @@ class E160_AntCO:
                     self.MoveProbability(ant, goal_state)
                     #print "ant probability", ant.probability
                     #determine best direction
-                    print "last Row Col", lastRow, lastCol
-                    print "diffProb", abs(lastRow-row-1), abs(lastCol-col)+1
+                    # print "last Row Col", lastRow, lastCol
+                    # print "diffProb", abs(lastRow-row-1), abs(lastCol-col)+1
                     ant.probability[abs((lastRow-row)-1)][abs(lastCol-col)+1] = 0.00001
                     #print "yoyoy"
                     #TODO: max of 2D array and save direction
@@ -335,61 +339,84 @@ class E160_AntCO:
                     ant.path.append(current_cell)
 
                     #print "current position", current_cell.row, current_cell.col
+                    # print 'bestPathLength ', len(self.best_path)
+                    # print 'antPathLength ', len(ant.path)
 
                     #check for complete path
                     if (current_state.x == goal_state.x) & (current_state.y == goal_state.y):
                         #Path found! 
                         #Check if it's a good path
-                        if len(self.best_path) == 0:
+                        antPathLength = len(ant.path)
+                        bestPathLength = len(self.best_path)
+                        # if len(self.best_path) == 0:
+                        if bestPathLength == 0:
                             #first path found
+                            # Log_bestPath = ant.path
                             self.best_path = ant.path
-                        if len(ant.path) < len(self.best_path):
+                            print "first path", len(self.best_path)
+                        # if len(ant.path) < len(self.best_path):
+                        if antPathLength < bestPathLength:
+                            print "betterPath", len(ant.path)
                             #better path found
+                            # Log_bestPath = ant.path
                             self.best_path = ant.path
-                        self.allPaths.append(ant.path)
+                        else:
+                            print 'worse path'
+                        # self.allPaths.append(ant.path)
                         #set current path
                         current_path = ant.path
                         path_found = True
+                        self.updatePheromones(current_path)
                         endTime_Path = time.time()
                         timeTaken_path = endTime_Path- startTime
-
                         self.Log_PathTime.append(timeTaken_path)
-                        self.Log_PathLength.append(len(ant.path))
+                        self.Log_PathLength.append(len(current_path))
                         self.Log_iteration.append(iteration)
-                        print "path found"
-                        break
+                        
+                        
+                        # temp_pathLength = len(self.best_path)
+
+                        # print "best path len", temp_pathLength
+
+                        
+                        # print "path found"
+                        #break
 
                             
                     #Move to next state if no path
                     #print "new state", new_x, new_y
                     ant.current_state.x = new_x
                     ant.current_state.y = new_y
-                    #TODO:fix theta
 
-                    # #print "path"
+                    #TODO:fix theta
+                    
+
+                    # #print "path" 
+
                     # counter +=1
                     # if counter==20:
                     #     self.updateObstacles() 
                         #self.environment.walls.append(E160_wall([0.7, 0.5, .8, 0.5],"horizontal"))
                 #a path is found. evaporate pheromones 
-                self.updatePheromones(current_path)
-                print "updated pheromones"
+                
+                # print "updated pheromones"
 
             #iterate paths
             iteration += 1
+            
             #if iteration == self.max_iteration/2:
             #    self.updateObstacles()
 
         
-            print "success!!"
+            # print "success!!"
             #print self.best_path
         # return the best path
         endTime = time.time()
-        self.time_taken = endTime - startTime
+        self.total_time_taken = endTime - startTime
         return self.best_path
 
     def updatePheromones(self, current_path):
-        rho = 0.1
+        rho = 0.6
         maxDistance = math.sqrt(math.pow(self.width,2)+math.pow(self.height,2))
         numCols = self.grid.numberOfCols()
         numRows = self.grid.numberOfRows()
@@ -401,7 +428,7 @@ class E160_AntCO:
                 
                 if  cell.DtoGoal < 0.5:
                     cell.pheromone += 0.5*(maxDistance - cell.DtoGoal)
-                    print cell.pheromone
+                    # print cell.pheromone
 
                 self.grid.modCellInGrid(cell, row, col)
 
@@ -437,42 +464,42 @@ class E160_AntCO:
         #print "stooooooppp"
         if probRow == 0 and probCol == 0:
             #go north west 
-            print "north west"
+            # print "north west"
             new_col = col - 1
             new_row = row + 1
         elif probRow == 1 and probCol == 0: 
             #go west
-            print "west"
+            # print "west"
             new_col = col - 1 
             new_row = row  
         elif probRow == 2 and probCol == 0:
             #go south west 
-            print "south west"
+            # print "south west"
             new_col = col - 1
             new_row = row - 1
         elif probRow == 2 and probCol == 1: 
             #go south
-            print "south"
+            # print "south"
             new_col = col 
             new_row = row - 1 
         elif probRow == 2 and probCol == 2:
             #go south east 
-            print "south east"
+            # print "south east"
             new_col = col + 1
             new_row = row - 1
         elif probRow == 1 and probCol == 2: 
             #go east
-            print "east"
+            # print "east"
             new_col = col + 1 
             new_row = row  
         elif probRow == 0 and probCol == 2:
             #go north east 
-            print "north east"
+            # print "north east"
             new_col = col + 1
             new_row = row + 1
         elif probRow == 0 and probCol == 1: 
             #go north
-            print "north"
+            # print "north"
             new_col = col  
             new_row = row + 1
         else:
@@ -538,7 +565,7 @@ class E160_AntCO:
             [lastRow, lastCol] = [2,1] 
         else:
             [lastRow, lastCol] = [1,1]
-        print "lastRow,lastCol", lastRow, lastCol
+        # print "lastRow,lastCol", lastRow, lastCol
        
         # if nextMoveDirection == 0:
         #     #go north, y+1
